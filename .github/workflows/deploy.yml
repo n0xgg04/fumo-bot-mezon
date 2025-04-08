@@ -27,9 +27,9 @@ jobs:
             yarn --version
             pm2 --version
             cd ${{ secrets.PROJECT_DIR }}
-            git fetch origin master
+            git fetch origin main
             git reset --hard
-            git pull origin master
+            git pull origin main
             yarn install
             yarn build
             pm2 restart ${{ secrets.PM2_APP_NAME }}
