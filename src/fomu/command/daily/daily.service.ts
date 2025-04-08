@@ -41,12 +41,6 @@ export class DailyService {
       promiseReply.message_id,
       {
         t: daily.content as string,
-        mk: [
-          {
-            s: 0,
-            e: daily.content.length,
-          },
-        ],
       },
       [ref],
     );
