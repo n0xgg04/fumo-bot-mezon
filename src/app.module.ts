@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from '@hapi/joi';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BotModule } from './bot/bot.module';
+import { FomuModule } from './fomu/fomu.module';
 
 @Module({
   imports: [
@@ -19,10 +20,11 @@ import { BotModule } from './bot/bot.module';
       imports: [ConfigModule],
     }),
     EventEmitterModule.forRoot(),
-    MezonModule, 
-    BotModule
+    MezonModule,
+    BotModule,
+    FomuModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

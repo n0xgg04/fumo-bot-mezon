@@ -35,10 +35,7 @@ export class MezonModule {
             client: MezonService,
             messageQueueStore: MessageQueueStore,
           ): MessageQueueService => {
-            return new MessageQueueService(
-              client,
-              messageQueueStore,
-            );
+            return new MessageQueueService(client, messageQueueStore);
           },
           inject: [MezonService, MessageQueueStore],
         },

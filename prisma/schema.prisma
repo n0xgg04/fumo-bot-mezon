@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model message_logs {
+  id              Int      @id @default(autoincrement())
+  message_id      String
+  sender_avatar   String
+  sender_name     String
+  sender_id       String
+  sender_username String
+  content         Json
+  created_at      DateTime @default(now())
+  channel_id      String
+  clan_id         String
+  clan_avatar     String
+  clan_name       String
+  clan_username   String
+}
+
+model user_balance {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  username   String
+  balance    Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([user_id])
+  @@index([user_id])
+}
+
+model transaction_logs {
+  id             Int      @id @default(autoincrement())
+  user_id        String
+  amount         Int
+  transaction_id String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@unique([transaction_id])
+  @@index([user_id, transaction_id])
+}
+
+model keobuabao_game {
+  id                  Int                   @id @default(autoincrement())
+  user_id_create      String
+  cost                Int                   @default(0)
+  only_for_user_id    String
+  created_at          DateTime              @default(now())
+  updated_at          DateTime              @updatedAt
+  keobuabao_game_logs keobuabao_game_logs[]
+  status              EKeobuabaoGameStatus  @default(PLAYING)
+  channel_id          String
+  message_id          String
+  clan_id             String
+  user_name_create    String                @default("")
+  only_for_user_name  String                @default("")
+
+  @@unique([user_id_create, only_for_user_id, clan_id, channel_id, message_id])
+  @@index([user_id_create])
+}
+
+model keobuabao_game_logs {
+  id             Int            @id @default(autoincrement())
+  game_id        Int
+  user_id        String
+  keo_bua_bao    KeoBuaBaoEnum
+  keobuabao_game keobuabao_game @relation(fields: [game_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([game_id, user_id])
+  @@index([game_id, user_id])
+}
+
+enum KeoBuaBaoEnum {
+  KEO
+  BUA
+  BAO
+}
+
+enum EKeobuabaoGameStatus {
+  PLAYING
+  ENDED
+}

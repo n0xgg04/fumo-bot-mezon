@@ -3,9 +3,7 @@ import { BotGateway } from './bot.gateway';
 import { MezonModule } from 'src/mezon/mezon.module';
 @Module({
   imports: [MezonModule],
-  providers: [
-    BotGateway,
-  ],
+  providers: [BotGateway],
   exports: [BotGateway],
 })
 export class BotModule {}

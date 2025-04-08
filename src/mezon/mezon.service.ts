@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MezonClient } from 'mezon-sdk';
+import {
+  ApiMessageMention,
+  ApiMessageAttachment,
+  MezonClient,
+  TokenSentEvent,
+  ChannelMessageContent,
+} from 'mezon-sdk';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 
 @Injectable()
@@ -26,6 +32,11 @@ export class MezonService {
     return this.client;
   }
 
+  async sendTokenToUser(data: TokenSentEvent) {
+    console.log('SEND TOKE N', data);
+    return this.client.sendToken(data);
+  }
+
   async sendMessageToChannel({
     clan_id,
     channel_id,
@@ -49,7 +60,6 @@ export class MezonService {
   }
 
   async sendMessage(replyMessage: MezonSendMessageToChannelCore) {
-    this.logger.debug('Send message', replyMessage);
     try {
       return await this.client.sendMessage(
         replyMessage.clan_id,
@@ -85,6 +95,31 @@ export class MezonService {
       return await this.client.createDMchannel(userId);
     } catch (error) {
       this.logger.error('Error creating DM channel', error);
+    }
+  }
+
+  async updateMessage(
+    clan_id: string,
+    channel_id: string,
+    mode: number,
+    is_public: boolean,
+    message_id: string,
+    content: ChannelMessageContent,
+    mentions?: Array<ApiMessageMention>,
+    attachments?: Array<ApiMessageAttachment>,
+    hideEditted?: boolean,
+  ) {
+    try {
+      return await this.client.updateChatMessage(
+        clan_id,
+        channel_id,
+        mode,
+        is_public,
+        message_id,
+        content,
+      );
+    } catch (error) {
+      this.logger.error('Error updating message', error);
     }
   }
 

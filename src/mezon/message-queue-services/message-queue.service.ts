@@ -14,18 +14,19 @@ export class MessageQueueService {
 
   private async processDirectMessage(message: ReplyMezonMessage) {
     const dmChannel = await this.mezonService
-        .getClient()
-        .createDMchannel(message.mezonUserId!).then((dmChannel) => {
-          if (!dmChannel?.channel_id) return;
-          this.mezonService.sendMessageToUser({
-            attachments: [],
-            channelDmId: dmChannel.channel_id,
-            messOptions: {},
-            refs: [],
-            textContent: message.message,
-          });
-        }
-      ).catch((error) => {  
+      .getClient()
+      .createDMchannel(message.mezonUserId!)
+      .then((dmChannel) => {
+        if (!dmChannel?.channel_id) return;
+        this.mezonService.sendMessageToUser({
+          attachments: [],
+          channelDmId: dmChannel.channel_id,
+          messOptions: {},
+          refs: [],
+          textContent: message.message,
+        });
+      })
+      .catch((error) => {
         console.error('Error sending direct message:', error);
       });
   }
@@ -38,7 +39,8 @@ export class MessageQueueService {
         is_public: message.isPublic,
         mode: message.messageMode,
         msg: generateChannelMessageContent({
-          message: message.message, blockMessage: message.blockMessage,
+          message: message.message,
+          blockMessage: message.blockMessage,
         }),
       });
     } catch (error) {

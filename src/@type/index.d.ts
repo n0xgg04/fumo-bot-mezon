@@ -32,7 +32,17 @@ declare global {
     message_sender_id: string;
   };
 
-  type MezonMessageToChannel = Pick<MezonSendMessageToChannelCore, 'clan_id' | 'channel_id' | 'is_public' | 'mode' | 'msg' | 'mentions' | 'attachments' | 'ref'>;
+  type MezonMessageToChannel = Pick<
+    MezonSendMessageToChannelCore,
+    | 'clan_id'
+    | 'channel_id'
+    | 'is_public'
+    | 'mode'
+    | 'msg'
+    | 'mentions'
+    | 'attachments'
+    | 'ref'
+  >;
 
   type MezonClientConfig = {
     token: string;
@@ -51,11 +61,11 @@ declare global {
     clan?: {
       id: string;
     };
-    channel? : {
+    channel?: {
       id: string;
     };
     mezonUserId?: string;
-  }
+  };
 
   type ReplyContentType = {
     messageContent?: string;
@@ -74,4 +84,4 @@ declare global {
   };
 }
 
-export { };
+export {};
