@@ -9,7 +9,7 @@ export class AvatarCommand {
 
   @OnEvent(Events.ChannelMessage)
   async handleChannelMessage(message: ChannelMessage) {
-    if (message.content.t?.startsWith('*avatar')) {
+    if (message.content.t?.startsWith('*f_avatar')) {
       await this.avatarService.handleAvatar(message);
     }
   }

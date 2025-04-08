@@ -9,7 +9,7 @@ export class DailyCommand {
 
   @OnEvent(Events.ChannelMessage)
   async handleChannelMessage(message: ChannelMessage) {
-    if (message.content.t?.startsWith('*daily')) {
+    if (message.content.t?.startsWith('*fdaily')) {
       await this.dailyService.handleDaily(message);
     }
   }

@@ -19,7 +19,7 @@ export class TomTatService {
     const promiseMessage = await this.mezon.sendMessageToChannel({
       channel_id: message.channel_id,
       clan_id: message.clan_id!,
-      is_public: true,
+      is_public: message.is_public || false,
       mode: EMessageMode.CHANNEL_MESSAGE,
       msg: {
         t: 'Đang tóm tắt...',
@@ -46,7 +46,7 @@ export class TomTatService {
       message.clan_id!,
       promiseMessage.channel_id,
       EMessageMode.CHANNEL_MESSAGE,
-      true,
+      message.is_public || false,
       promiseMessage.message_id,
       {
         t: result.content as string,

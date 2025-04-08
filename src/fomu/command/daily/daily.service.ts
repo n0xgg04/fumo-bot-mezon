@@ -25,7 +25,7 @@ export class DailyService {
     const promiseReply = await this.mezon.sendMessageToChannel({
       clan_id: message.clan_id!,
       channel_id: message.channel_id,
-      is_public: true,
+      is_public: message.is_public || false,
       mode: EMessageMode.CHANNEL_MESSAGE,
       msg: { t: 'Đang tạo daily...' },
       ref: [ref],
@@ -37,7 +37,7 @@ export class DailyService {
       message.clan_id!,
       promiseReply.channel_id,
       EMessageMode.CHANNEL_MESSAGE,
-      true,
+      message.is_public || false,
       promiseReply.message_id,
       {
         t: daily.content as string,

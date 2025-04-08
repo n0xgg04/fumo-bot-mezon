@@ -75,8 +75,23 @@ export class TopupService {
     } catch (error) {}
   }
 
+  async ping(data: ChannelMessage) {
+    const ref = getRef(data);
+    await this.mezon.sendMessageToChannel({
+      clan_id: data.clan_id!,
+      channel_id: data.channel_id,
+      is_public: data.is_public || false,
+      mode: EMessageMode.CHANNEL_MESSAGE,
+      msg: {
+        t: 'PONG',
+      },
+      ref: [ref],
+    });
+  }
+
   async checkBalance(data: ChannelMessage) {
     const ref = getRef(data);
+    console.log('KTTT', data);
     const userBalance = await this.prisma.user_balance.findUnique({
       where: {
         user_id: data.sender_id,
@@ -87,7 +102,7 @@ export class TopupService {
       await this.mezon.sendMessageToChannel({
         clan_id: data.clan_id!,
         channel_id: data.channel_id,
-        is_public: true,
+        is_public: data.is_public || false,
         mode: EMessageMode.CHANNEL_MESSAGE,
         msg: {
           t: message,
@@ -96,16 +111,17 @@ export class TopupService {
       });
     } else {
       const message = `Số dư của bạn là ${userBalance.balance} token`;
-      await this.mezon.sendMessageToChannel({
+      const kttk = await this.mezon.sendMessageToChannel({
         clan_id: data.clan_id!,
         channel_id: data.channel_id,
-        is_public: true,
+        is_public: data.is_public || false,
         mode: EMessageMode.CHANNEL_MESSAGE,
         msg: {
           t: message,
         },
         ref: [ref],
       });
+      console.log(kttk);
     }
   }
 
@@ -121,7 +137,7 @@ export class TopupService {
       await this.mezon.sendMessageToChannel({
         clan_id: data.clan_id!,
         channel_id: data.channel_id,
-        is_public: true,
+        is_public: data.is_public || false,
         mode: EMessageMode.CHANNEL_MESSAGE,
         msg: {
           t: message,
@@ -153,7 +169,7 @@ export class TopupService {
       await this.mezon.sendMessageToChannel({
         clan_id: data.clan_id!,
         channel_id: data.channel_id,
-        is_public: true,
+        is_public: data.is_public || false,
         mode: EMessageMode.CHANNEL_MESSAGE,
         msg: {
           t: message,
@@ -170,7 +186,7 @@ export class TopupService {
     const promiseMessage = await this.mezon.sendMessageToChannel({
       clan_id: data.clan_id!,
       channel_id: data.channel_id,
-      is_public: true,
+      is_public: data.is_public || false,
       mode: EMessageMode.CHANNEL_MESSAGE,
       msg: {
         t: `Đang thiết lập game...`,
@@ -187,12 +203,6 @@ export class TopupService {
         promiseMessage.message_id,
         {
           t: message,
-          mk: [
-            {
-              s: 0,
-              e: message.length,
-            },
-          ],
         },
         [ref],
       );
@@ -272,7 +282,7 @@ export class TopupService {
                   id: 'che',
                   type: EMessageComponentType.BUTTON,
                   component: {
-                    label: 'ĐÉO CHƠI',
+                    label: 'TỪ CHỐI CHƠI',
                     style: EButtonMessageStyle.DANGER,
                   },
                 },
@@ -354,7 +364,7 @@ export class TopupService {
         await this.mezon.sendMessageToChannel({
           clan_id: game[0].clan_id,
           channel_id: game[0].channel_id,
-          is_public: true,
+          is_public: false,
           mode: EMessageMode.CHANNEL_MESSAGE,
           msg: {
             t: 'Bạn đã chọn rồi',
@@ -379,7 +389,7 @@ export class TopupService {
             await this.mezon.sendMessageToChannel({
               clan_id: game[0].clan_id,
               channel_id: game[0].channel_id,
-              is_public: true,
+              is_public: false,
               mode: EMessageMode.CHANNEL_MESSAGE,
               msg: {
                 t: `Bạn và đối thủ đều chọn ${CHOICES_SUB[data.button_id]}. Ván này hoà!`,
@@ -405,7 +415,7 @@ export class TopupService {
                   this.mezon.sendMessageToChannel({
                     clan_id: game[0].clan_id,
                     channel_id: game[0].channel_id,
-                    is_public: true,
+                    is_public: false,
                     mode: EMessageMode.CHANNEL_MESSAGE,
                     msg: {
                       t: `${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} đã thắng ${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`,
@@ -442,7 +452,7 @@ export class TopupService {
                 this.mezon.sendMessageToChannel({
                   clan_id: game[0].clan_id,
                   channel_id: game[0].channel_id,
-                  is_public: true,
+                  is_public: false,
                   mode: EMessageMode.CHANNEL_MESSAGE,
                   msg: {
                     t: `${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} đã thua ${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n KẾT QUẢ: ${partnerCredit?.username} nhận ${game[0].cost} token từ ${userCredit?.username}`,
@@ -498,7 +508,7 @@ export class TopupService {
             this.mezon.sendMessageToChannel({
               clan_id: game[0].clan_id,
               channel_id: game[0].channel_id,
-              is_public: true,
+              is_public: false,
               mode: EMessageMode.CHANNEL_MESSAGE,
               msg: {
                 t: `${userName?.username} đã chọn. Hãy chờ đối phương chọn`,

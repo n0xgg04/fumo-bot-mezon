@@ -18,7 +18,7 @@ export class AvatarService {
     await this.mezon.sendMessageToChannel({
       clan_id: message.clan_id!,
       channel_id: message.channel_id,
-      is_public: true,
+      is_public: message.is_public || false,
       mode: EMessageMode.CHANNEL_MESSAGE,
       attachments: [
         {
