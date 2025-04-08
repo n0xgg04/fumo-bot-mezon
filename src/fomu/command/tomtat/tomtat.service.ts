@@ -15,6 +15,7 @@ export class TomTatService {
 
   async handleTomTat(message: ChannelMessage, lastMinute: number) {
     const ref = getRef(message);
+    // { type: 'pre', e: 9, s: 3 }
 
     const promiseMessage = await this.mezon.sendMessageToChannel({
       channel_id: message.channel_id,
@@ -52,9 +53,9 @@ export class TomTatService {
         t: result.content as string,
         mk: [
           {
-            type: EMarkdownType.TRIPLE,
+            type: 'pre' as EMarkdownType,
             e: result.content.length,
-            s: 33 - 8,
+            s: 24,
           },
         ],
       },
