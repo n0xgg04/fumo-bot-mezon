@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { MezonService } from './mezon.service';
 import { MessageQueueStore } from './message-queue-services/message-queue-store.service';
 import { MessageQueueService } from './message-queue-services/message-queue.service';
+import { FumoMessageService } from './fumo-message.module';
 
 @Global()
 @Module({
@@ -14,6 +15,7 @@ export class MezonModule {
       module: MezonModule,
       imports: options.imports,
       providers: [
+        FumoMessageService,
         {
           provide: MezonService,
           useFactory: async (configService: ConfigService) => {
@@ -40,7 +42,12 @@ export class MezonModule {
           inject: [MezonService, MessageQueueStore],
         },
       ],
-      exports: [MezonService, MessageQueueService, MessageQueueStore],
+      exports: [
+        MezonService,
+        MessageQueueService,
+        MessageQueueStore,
+        FumoMessageService,
+      ],
     };
   }
 }

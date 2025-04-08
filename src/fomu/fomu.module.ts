@@ -7,7 +7,8 @@ import { TomTatModule } from './command/tomtat/tomtat.module';
 import { AvatarModule } from './command/avatar/avatar.module';
 import { DailyModule } from './command/daily/daily.module';
 import { TopupModule } from './command/topup/topup.module';
-
+import { XsModule } from './command/xs/xs.module';
+import { UserService } from './user-service';
 @Module({
   imports: [
     MezonModule,
@@ -16,8 +17,9 @@ import { TopupModule } from './command/topup/topup.module';
     AvatarModule,
     DailyModule,
     TopupModule,
+    XsModule,
   ],
-  providers: [FomuService, FomuLogService],
+  providers: [FomuService, FomuLogService, UserService],
   exports: [FomuService],
 })
 export class FomuModule {}

@@ -33,7 +33,6 @@ export class MezonService {
   }
 
   async sendTokenToUser(data: TokenSentEvent) {
-    console.log('SEND TOKE N', data);
     return this.client.sendToken(data);
   }
 

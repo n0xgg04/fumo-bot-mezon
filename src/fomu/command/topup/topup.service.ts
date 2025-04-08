@@ -11,6 +11,7 @@ import {
 import { getRef } from 'src/common/utils/get-ref';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { EKeobuabaoGameStatus, KeoBuaBaoEnum } from '@prisma/client';
+import { FumoMessageService } from 'src/mezon/fumo-message.module';
 
 const CHOICES = {
   bua: KeoBuaBaoEnum.BUA,
@@ -29,6 +30,7 @@ export class TopupService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mezon: MezonService,
+    private readonly fumoMessage: FumoMessageService,
   ) {}
 
   async createToken(data: TokenSentEventI) {
@@ -91,37 +93,17 @@ export class TopupService {
   }
 
   async checkBalance(data: ChannelMessage) {
-    const ref = getRef(data);
-    console.log('KTTT', data);
     const userBalance = await this.prisma.user_balance.findUnique({
       where: {
         user_id: data.sender_id,
       },
     });
     if (!userBalance) {
-      const message = `💸Bạn không có số dư\nHãy nạp thêm token để sử dụng`;
-      await this.mezon.sendMessageToChannel({
-        clan_id: data.clan_id!,
-        channel_id: data.channel_id,
-        is_public: data.is_public || false,
-        mode: EMessageMode.CHANNEL_MESSAGE,
-        msg: {
-          t: message,
-        },
-        ref: [ref],
-      });
+      const message = `💸Bạn không có số dư\nHãy nạp thêm token bằng cách send token cho bot FUMO.`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
     } else {
       const message = `💸Số dư của bạn là ${userBalance.balance} token`;
-      const kttk = await this.mezon.sendMessageToChannel({
-        clan_id: data.clan_id!,
-        channel_id: data.channel_id,
-        is_public: data.is_public || false,
-        mode: EMessageMode.CHANNEL_MESSAGE,
-        msg: {
-          t: message,
-        },
-        ref: [ref],
-      });
+      await this.fumoMessage.sendSystemMessage(data, message, data);
     }
   }
 
@@ -134,16 +116,7 @@ export class TopupService {
     });
     if (!userBalance || userBalance.balance < amount || amount < 1000) {
       const message = `💸Số dư của bạn không đủ để rút hoặc số tiền rút không hợp lệ`;
-      await this.mezon.sendMessageToChannel({
-        clan_id: data.clan_id!,
-        channel_id: data.channel_id,
-        is_public: data.is_public || false,
-        mode: EMessageMode.CHANNEL_MESSAGE,
-        msg: {
-          t: message,
-        },
-        ref: [ref],
-      });
+      await this.fumoMessage.sendSystemMessage(data, message, data);
     } else {
       await this.prisma.$transaction(async (tx) => {
         await tx.user_balance.update({
@@ -157,7 +130,7 @@ export class TopupService {
           },
         });
       });
-      const result = await this.mezon.sendTokenToUser({
+      await this.mezon.sendTokenToUser({
         sender_id: data.sender_id,
         sender_name: data.username!,
         receiver_id: data.sender_id,
@@ -165,23 +138,7 @@ export class TopupService {
         note: `Rút ${amount} token`,
       });
       const message = `💸Rút ${amount} token thành công`;
-      await this.mezon.sendMessageToChannel({
-        clan_id: data.clan_id!,
-        channel_id: data.channel_id,
-        is_public: data.is_public || false,
-        mode: EMessageMode.CHANNEL_MESSAGE,
-        msg: {
-          t: message,
-          mk: [
-            {
-              type: 'pre' as EMarkdownType,
-              e: message.length,
-              s: 0,
-            },
-          ],
-        },
-        ref: [ref],
-      });
+      await this.fumoMessage.sendSystemMessage(data, message, data);
     }
   }
 
@@ -190,43 +147,14 @@ export class TopupService {
     const partnerId = data.references?.[0]?.message_sender_id;
     const parterName = data.references?.[0]?.message_sender_username;
     const m = `🔃Đang thiết lập game...`;
-    const promiseMessage = await this.mezon.sendMessageToChannel({
-      clan_id: data.clan_id!,
-      channel_id: data.channel_id,
-      is_public: data.is_public || false,
-      mode: EMessageMode.CHANNEL_MESSAGE,
-      msg: {
-        t: m,
-        mk: [
-          {
-            type: 'pre' as EMarkdownType,
-            e: m.length,
-            s: 0,
-          },
-        ],
-      },
-      ref: [ref],
-    });
+    const promiseMessage = await this.fumoMessage.sendSystemMessage(
+      data,
+      m,
+      data,
+    );
     if (!partnerId) {
       const message = `😅Bạn không có đối thủ. Hãy rep tin nhắn ai đó`;
-      await this.mezon.updateMessage(
-        data.clan_id!,
-        promiseMessage.channel_id,
-        EMessageMode.CHANNEL_MESSAGE,
-        data.is_public || false,
-        promiseMessage.message_id,
-        {
-          t: message,
-          mk: [
-            {
-              type: 'pre' as EMarkdownType,
-              e: message.length,
-              s: 0,
-            },
-          ],
-        },
-        [ref],
-      );
+      await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
     const partnerBalance = await this.prisma.user_balance.findUnique({
@@ -250,24 +178,7 @@ export class TopupService {
 
     if (pBalance.balance < amount) {
       const message = `😅Đối thủ không có đủ tiền để chơi`;
-      await this.mezon.updateMessage(
-        data.clan_id!,
-        promiseMessage.channel_id,
-        EMessageMode.CHANNEL_MESSAGE,
-        data.is_public || false,
-        promiseMessage.message_id,
-        {
-          t: message,
-          mk: [
-            {
-              type: 'pre' as EMarkdownType,
-              e: message.length,
-              s: 0,
-            },
-          ],
-        },
-        [ref],
-      );
+      await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
     await Promise.all([
@@ -339,28 +250,22 @@ export class TopupService {
     myChoice: KeoBuaBaoEnum,
     partnerChoice: KeoBuaBaoEnum,
   ): Promise<-1 | 0 | 1> {
-    // Kiểm tra hòa
     if (myChoice === partnerChoice) {
-      return -1; // Hoà
+      return -1;
     }
 
-    // Kiểm tra thắng
     if (
       (myChoice === KeoBuaBaoEnum.KEO && partnerChoice === KeoBuaBaoEnum.BUA) || // Kéo thắng Búa
       (myChoice === KeoBuaBaoEnum.BUA && partnerChoice === KeoBuaBaoEnum.BAO) || // Búa thắng Bao
       (myChoice === KeoBuaBaoEnum.BAO && partnerChoice === KeoBuaBaoEnum.KEO) // Bao thắng Kéo
     ) {
-      return 1; // Thắng
+      return 1;
     }
 
-    // Nếu không phải hòa và không phải thắng thì là thua
-    return 0; // Thua
+    return 0;
   }
 
   async handleMessageButtonClicked(data: MessageButtonClickedEvent) {
-    if (data.button_id === 'che') {
-      return;
-    }
     const game = await this.prisma.keobuabao_game.findMany({
       where: {
         channel_id: data.channel_id,
@@ -380,9 +285,42 @@ export class TopupService {
         created_at: 'desc',
       },
     });
+
     if (!game || game.length === 0) {
-      console.log('NO GAME FOUND');
+      // Game không tồn tại
+      return;
     } else {
+      if (data.button_id === 'che') {
+        const m = '(Game đã kết thúc do từ chối chơi)';
+        await Promise.all([
+          this.mezon.updateMessage(
+            game[0].clan_id,
+            game[0].channel_id,
+            EMessageMode.CHANNEL_MESSAGE,
+            game[0].is_public_channel,
+            game[0].message_id,
+            {
+              t: m,
+              mk: [
+                {
+                  type: 'pre' as EMarkdownType,
+                  e: m.length,
+                  s: 0,
+                },
+              ],
+            },
+          ),
+          this.prisma.keobuabao_game.update({
+            where: {
+              id: game[0].id,
+            },
+            data: {
+              status: EKeobuabaoGameStatus.ENDED,
+            },
+          }),
+        ]);
+        return;
+      }
       const check = await this.prisma.keobuabao_game_logs.findFirst({
         where: {
           user_id: data.user_id,
@@ -390,7 +328,7 @@ export class TopupService {
         },
       });
       if (check) {
-        const mess = 'Bạn đã chọn rồi';
+        const mess = '❌Bạn đã chọn rồi';
         await this.mezon.sendMessageToChannel({
           clan_id: game[0].clan_id,
           channel_id: game[0].channel_id,
@@ -423,7 +361,7 @@ export class TopupService {
             partnerChosen.keo_bua_bao,
           );
           if (result === -1) {
-            const mess = `Bạn và đối thủ đều chọn ${CHOICES_SUB[data.button_id]}. Ván này hoà!`;
+            const mess = `😲Bạn và đối thủ đều chọn ${CHOICES_SUB[data.button_id]}. Ván này hoà!`;
             await this.mezon.sendMessageToChannel({
               clan_id: game[0].clan_id,
               channel_id: game[0].channel_id,
@@ -463,7 +401,7 @@ export class TopupService {
                     is_public: game[0].is_public_channel,
                     mode: EMessageMode.CHANNEL_MESSAGE,
                     msg: {
-                      t: `${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`,
+                      t: `📣${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`,
                     },
                   }),
                   tx.user_balance.update({
@@ -493,7 +431,7 @@ export class TopupService {
                 ]);
               });
             } else {
-              const mess = `${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} đã thua ${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n KẾT QUẢ: ${partnerCredit?.username} nhận ${game[0].cost} token từ ${userCredit?.username}`;
+              const mess = `📣${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} \n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${partnerCredit?.username} nhận ${game[0].cost} token từ ${userCredit?.username}`;
               await Promise.all([
                 this.mezon.sendMessageToChannel({
                   clan_id: game[0].clan_id,
@@ -541,6 +479,24 @@ export class TopupService {
               ]);
             }
           }
+          const m = '(Game đã kết thúc)';
+          await this.mezon.updateMessage(
+            game[0].clan_id,
+            game[0].channel_id,
+            EMessageMode.CHANNEL_MESSAGE,
+            game[0].is_public_channel,
+            game[0].message_id,
+            {
+              t: m,
+              mk: [
+                {
+                  type: 'pre' as EMarkdownType,
+                  e: m.length,
+                  s: 0,
+                },
+              ],
+            },
+          );
         } else {
           const userName = await this.prisma.user_balance.findFirst({
             where: {

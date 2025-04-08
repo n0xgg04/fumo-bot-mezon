@@ -5,11 +5,13 @@ import { ChannelMessage, Events, TokenSentEvent } from 'mezon-sdk';
 import { MessageButtonClickedEvent, TokenSentEventI } from './types';
 import { MezonService } from 'src/mezon/mezon.service';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
+import { FumoMessageService } from 'src/mezon/fumo-message.module';
 @Injectable()
 export class TopupEvent {
   constructor(
     private readonly topupService: TopupService,
     private readonly mezon: MezonService,
+    private readonly fumoMessage: FumoMessageService,
   ) {}
 
   @OnEvent(Events.TokenSend)
@@ -37,21 +39,11 @@ export class TopupEvent {
         if (!isNaN(number)) {
           await this.topupService.createKBB(data, number);
         } else {
-          await this.mezon.sendMessageToChannel({
-            clan_id: data.clan_id!,
-            channel_id: data.channel_id,
-            is_public: true,
-            mode: EMessageMode.CHANNEL_MESSAGE,
-            msg: {
-              t: 'Số tiền không hợp lệ',
-              mk: [
-                {
-                  s: 0,
-                  e: 'Số tiền không hợp lệ'.length,
-                },
-              ],
-            },
-          });
+          await this.fumoMessage.sendSystemMessage(
+            data,
+            'Số tiền không hợp lệ',
+            data,
+          );
         }
       }
     }

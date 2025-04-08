@@ -17,4 +17,11 @@ export class TomTatCommand {
       await this.tomTatService.handleTomTat(message, lastMinute);
     }
   }
+
+  @OnEvent(Events.ChannelMessage)
+  async handleChannelMessageHelp(message: ChannelMessage) {
+    if (message.content.t?.startsWith('*fhelp')) {
+      await this.tomTatService.handleHelp(message);
+    }
+  }
 }

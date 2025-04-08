@@ -5,13 +5,23 @@ import { AiService } from 'src/ai/ai.service';
 import { MezonService } from 'src/mezon/mezon.service';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { getRef } from 'src/common/utils/get-ref';
+import { FumoMessageService } from 'src/mezon/fumo-message.module';
 @Injectable()
 export class TomTatService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiService: AiService,
     private readonly mezon: MezonService,
+    private readonly fumoMessage: FumoMessageService,
   ) {}
+
+  async handleHelp(message: ChannelMessage) {
+    await this.fumoMessage.sendSystemMessage(
+      message,
+      `🤖FUMO BOT\n*tomtat <n phút> : Tóm tắt hội thoại trong channel hiện tại từ n phút trước\n*fhelp : Hiển thị danh sách lệnh\n*fping : Kiểm tra bot\n*kttk: Kiểm tra số lượng token đang có\n*rut <n token>: Rút n token về tài khoản Mezon\nĐể nạp tiền, hãy chuyển token trực tiếp cho FOMU.\n\n🕹️GAME:\n*kbb <n token> : Chơi kéo búa bao với đối thủ, cần reply tin nhắn đối thủ(cược n token, n>=0)`,
+      message,
+    );
+  }
 
   async handleTomTat(message: ChannelMessage, lastMinute: number) {
     const ref = getRef(message);

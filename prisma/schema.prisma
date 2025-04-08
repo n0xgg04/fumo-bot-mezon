@@ -96,6 +96,19 @@ model keobuabao_game_logs {
   @@index([game_id, user_id])
 }
 
+model xs_logs {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  number     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  cost       Int
+  is_active  Boolean  @default(true)
+
+  @@unique([user_id])
+  @@index([user_id])
+}
+
 enum KeoBuaBaoEnum {
   KEO
   BUA

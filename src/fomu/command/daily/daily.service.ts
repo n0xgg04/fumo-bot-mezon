@@ -4,6 +4,7 @@ import { AiService } from 'src/ai/ai.service';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { getRef } from 'src/common/utils/get-ref';
 import { MezonService } from 'src/mezon/mezon.service';
+import { FumoMessageService } from 'src/mezon/fumo-message.module';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -11,25 +12,20 @@ export class DailyService {
   constructor(
     private readonly aiService: AiService,
     private readonly mezon: MezonService,
+    private readonly fumoMessage: FumoMessageService,
   ) {}
 
   async handleDaily(message: ChannelMessage) {
-    if (!message.content.t) {
-      return;
-    }
     const ref = getRef(message);
-    const keyword = message.content.t.substring(7);
+    const keyword = message.content.t!.substring(7);
     if (keyword.trim() === '') {
       return;
     }
-    const promiseReply = await this.mezon.sendMessageToChannel({
-      clan_id: message.clan_id!,
-      channel_id: message.channel_id,
-      is_public: message.is_public || false,
-      mode: EMessageMode.CHANNEL_MESSAGE,
-      msg: { t: 'Đang tạo daily...' },
-      ref: [ref],
-    });
+    const promiseReply = await this.fumoMessage.sendSystemMessage(
+      message,
+      'Đang tạo daily...',
+      message,
+    );
 
     const date = new Date().toLocaleDateString('vi-VN');
     const daily = await this.aiService.generateDaily(keyword, date);
