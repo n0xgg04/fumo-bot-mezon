@@ -1,8 +1,8 @@
 module.exports = {
   apps: [
     {
-      script: 'yarn start',
-      name: 'FUMO',
+      script: 'yarn build && yarn start',
+      name: 'fumo',
     },
   ],
 };
