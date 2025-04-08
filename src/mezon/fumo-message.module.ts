@@ -25,7 +25,6 @@ export class FumoMessageService {
     message: string,
     refContext?: ChannelMessage,
   ) {
-    const ref = getRef(context);
     return this.mezonService.sendMessageToChannel({
       clan_id: context.clan_id!,
       channel_id: context.channel_id,
@@ -41,7 +40,7 @@ export class FumoMessageService {
           },
         ],
       },
-      ref: [ref],
+      ref: refContext ? [getRef(refContext)] : undefined,
     });
   }
 }
