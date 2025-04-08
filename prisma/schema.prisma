@@ -9,8 +9,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model message_logs {
@@ -27,6 +28,17 @@ model message_logs {
   clan_avatar     String
   clan_name       String
   clan_username   String
+}
+
+model timesheet_token {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  token      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  expires_at DateTime
+
+  @@unique([user_id])
 }
 
 model user_balance {

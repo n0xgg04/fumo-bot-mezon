@@ -157,12 +157,6 @@ export class TopupService {
         mode: EMessageMode.CHANNEL_MESSAGE,
         msg: {
           t: message,
-          mk: [
-            {
-              s: 0,
-              e: message.length,
-            },
-          ],
         },
         ref: [ref],
       });
@@ -233,12 +227,6 @@ export class TopupService {
         promiseMessage.message_id,
         {
           t: message,
-          mk: [
-            {
-              s: 0,
-              e: message.length,
-            },
-          ],
         },
         [ref],
       );

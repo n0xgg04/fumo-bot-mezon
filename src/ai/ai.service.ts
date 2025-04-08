@@ -36,6 +36,35 @@ export class AiService {
     return result;
   }
 
+  async generateDaily(keyword: string, date: string) {
+    const prompt = ChatPromptTemplate.fromMessages([
+      [
+        'system',
+        `Daily is a structured text in the following format:
+        *daily {date}:
+        Yesterday: <Summary of yesterday's work>
+        Today: <Summary of today's work>
+        Block: none
+    
+        You need to create a Daily text based on the given keyword.
+        ### Requirements:
+        - Write in English
+        - Only return the Daily content, no extra information
+        - Keep it concise but ensure it's more than 100 characters
+        - Write generally, using the keyword to describe tasks. For example, for React: "Fix bugs, add features, refactor code, optimize UI, etc."
+        - The content should be generic and useful for urgent reports.`,
+      ],
+      [
+        'human',
+        'Write a daily for me with the keyword: {input} and date: {date}',
+      ],
+    ]);
+
+    const chain = prompt.pipe(this.ai);
+    const result = await chain.invoke({ input: keyword, date });
+    return result;
+  }
+
   async scanCV(cvUrl: string, asking: string) {
     //download file to ./temp
     const response = await fetch(cvUrl);
