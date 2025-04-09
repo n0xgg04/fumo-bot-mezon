@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { MezonService } from './mezon.service';
-import { ChannelMessage, EMarkdownType } from 'mezon-sdk';
+import {
+  ApiMessageAttachment,
+  ApiMessageRef,
+  ChannelMessage,
+  EMarkdownType,
+} from 'mezon-sdk';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { getRef } from 'src/common/utils/get-ref';
 
@@ -13,7 +18,7 @@ export class FumoMessageService {
       clan_id: context.clan_id!,
       channel_id: context.channel_id,
       is_public: context.is_public || false,
-      mode: EMessageMode.CHANNEL_MESSAGE,
+      mode: context.mode || EMessageMode.CHANNEL_MESSAGE,
       msg: {
         t: message,
       },
@@ -29,7 +34,7 @@ export class FumoMessageService {
       clan_id: context.clan_id!,
       channel_id: context.channel_id,
       is_public: context.is_public || false,
-      mode: EMessageMode.CHANNEL_MESSAGE,
+      mode: context.mode || EMessageMode.CHANNEL_MESSAGE,
       msg: {
         t: message,
         mk: [
@@ -41,6 +46,32 @@ export class FumoMessageService {
         ],
       },
       ref: refContext ? [getRef(refContext)] : undefined,
+    });
+  }
+
+  async sendTextDM(context: ChannelMessage | string, message: string) {
+    const channelDM =
+      typeof context === 'string'
+        ? await this.mezonService.createDMchannel(context)
+        : await this.mezonService.createDMchannel(context.sender_id);
+
+    await this.mezonService.sendMessageToUser({
+      channelDmId: channelDM?.channel_id || '',
+      textContent: message,
+      messOptions: {},
+      attachments: [],
+      refs:
+        typeof context === 'string'
+          ? []
+          : [
+              {
+                id: context.message_id,
+                type: 'message',
+                channel_id: context.channel_id,
+                clan_id: context.clan_id,
+                sender_id: context.sender_id,
+              } as ApiMessageRef,
+            ],
     });
   }
 }

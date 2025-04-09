@@ -18,7 +18,7 @@ export class TomTatService {
   async handleHelp(message: ChannelMessage) {
     await this.fumoMessage.sendSystemMessage(
       message,
-      `🤖FUMO BOT\n*tomtat <n phút> : Tóm tắt hội thoại trong channel hiện tại từ n phút trước\n*fhelp : Hiển thị danh sách lệnh\n*fping : Kiểm tra bot\n*kttk: Kiểm tra số lượng token đang có\n*rut <n token>: Rút n token về tài khoản Mezon\nĐể nạp tiền, hãy chuyển token trực tiếp cho FOMU.\n\n🕹️GAME:\n*kbb <n token> : Chơi kéo búa bao với đối thủ, cần reply tin nhắn đối thủ(cược n token, n>=0)`,
+      `🤖FUMO BOT\n*tomtat <n phút> : Tóm tắt hội thoại trong channel hiện tại từ n phút trước\n*fhelp : Hiển thị danh sách lệnh\n*fping : Kiểm tra bot\n*kttk: Kiểm tra số lượng token đang có\n*rut <n token>: Rút n token về tài khoản Mezon\nĐể nạp tiền, hãy chuyển token trực tiếp cho FOMU.\n\n🕹️GAME:\n*kbb <n token> : Chơi kéo búa bao với đối thủ, cần reply tin nhắn đối thủ(cược n token, n>=0)\n*fxsmb: Xem thông tin xổ số miền bắc ngày hôm nay\n*fxs <xx>: Đặt 5000 token vào số xx (2 chữ số), kết quả sẽ thông báo khi có kết quả xổ số ngày hôm nay. Tất cả số tiền các người chơi cọc sẽ được chuyển cho người đặt số gần 2 số cuối của giải đặc biệt KQXS.`,
       message,
     );
   }
@@ -31,7 +31,7 @@ export class TomTatService {
       channel_id: message.channel_id,
       clan_id: message.clan_id!,
       is_public: message.is_public || false,
-      mode: EMessageMode.CHANNEL_MESSAGE,
+      mode: message.mode ?? EMessageMode.CHANNEL_MESSAGE,
       msg: {
         t: 'Đang tóm tắt...',
       },
@@ -56,7 +56,7 @@ export class TomTatService {
     await this.mezon.updateMessage(
       message.clan_id!,
       promiseMessage.channel_id,
-      EMessageMode.CHANNEL_MESSAGE,
+      message.mode || EMessageMode.CHANNEL_MESSAGE,
       message.is_public || false,
       promiseMessage.message_id,
       {

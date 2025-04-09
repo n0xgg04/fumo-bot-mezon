@@ -7,6 +7,7 @@ import * as Joi from '@hapi/joi';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BotModule } from './bot/bot.module';
 import { FomuModule } from './fomu/fomu.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [

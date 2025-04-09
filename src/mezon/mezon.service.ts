@@ -36,6 +36,10 @@ export class MezonService {
     return this.client.sendToken(data);
   }
 
+  async createDMChannel(userId: string) {
+    return this.client.createDMchannel(userId);
+  }
+
   async sendMessageToChannel({
     clan_id,
     channel_id,

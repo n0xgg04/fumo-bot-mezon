@@ -32,7 +32,7 @@ export class DailyService {
     await this.mezon.updateMessage(
       message.clan_id!,
       promiseReply.channel_id,
-      EMessageMode.CHANNEL_MESSAGE,
+      message.mode ?? EMessageMode.CHANNEL_MESSAGE,
       message.is_public || false,
       promiseReply.message_id,
       {

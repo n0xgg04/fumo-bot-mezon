@@ -96,6 +96,17 @@ model keobuabao_game_logs {
   @@index([game_id, user_id])
 }
 
+model kqxs {
+  id         Int      @id @default(autoincrement())
+  result     String
+  indetifier String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([indetifier])
+  @@index([indetifier])
+}
+
 model xs_logs {
   id         Int      @id @default(autoincrement())
   user_id    String
@@ -104,6 +115,10 @@ model xs_logs {
   updated_at DateTime @updatedAt
   cost       Int
   is_active  Boolean  @default(true)
+  channel_id String   @default("")
+  clan_id    String   @default("")
+  is_public  Boolean  @default(false)
+  username   String   @default("")
 
   @@unique([user_id])
   @@index([user_id])

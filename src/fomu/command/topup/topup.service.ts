@@ -43,40 +43,46 @@ export class TopupService {
         },
       });
       if (check || !data.sender_id) return;
-      await this.prisma.$transaction(async (tx) => {
-        const userBalance = await tx.user_balance.findUnique({
-          where: {
-            user_id: data.sender_id,
-          },
-        });
-        if (!userBalance) {
-          await tx.user_balance.create({
-            data: {
-              user_id: data.sender_id,
-              balance: data.amount,
-              username: data.sender_name,
-            },
-          });
-        } else {
-          await tx.user_balance.update({
+      await Promise.all([
+        this.fumoMessage.sendTextDM(
+          data.sender_id,
+          `Đã nạp thành công ${data.amount} token vào FUMO.`,
+        ),
+        this.prisma.$transaction(async (tx) => {
+          const userBalance = await tx.user_balance.findUnique({
             where: {
               user_id: data.sender_id,
             },
-            data: {
-              balance: {
-                increment: data.amount,
+          });
+          if (!userBalance) {
+            await tx.user_balance.create({
+              data: {
+                user_id: data.sender_id,
+                balance: data.amount,
+                username: data.sender_name,
               },
-            },
-          });
-          await tx.transaction_logs.create({
-            data: {
-              transaction_id: data.transaction_id,
-              user_id: data.sender_id,
-              amount: data.amount,
-            },
-          });
-        }
-      });
+            });
+          } else {
+            await tx.user_balance.update({
+              where: {
+                user_id: data.sender_id,
+              },
+              data: {
+                balance: {
+                  increment: data.amount,
+                },
+              },
+            });
+            await tx.transaction_logs.create({
+              data: {
+                transaction_id: data.transaction_id,
+                user_id: data.sender_id,
+                amount: data.amount,
+              },
+            });
+          }
+        }),
+      ]);
     } catch (error) {}
   }
 
@@ -86,7 +92,7 @@ export class TopupService {
       clan_id: data.clan_id!,
       channel_id: data.channel_id,
       is_public: data.is_public || false,
-      mode: EMessageMode.CHANNEL_MESSAGE,
+      mode: data.mode || EMessageMode.CHANNEL_MESSAGE,
       msg: {
         t: 'PONG',
       },
@@ -160,7 +166,7 @@ export class TopupService {
       await this.mezon.updateMessage(
         data.clan_id!,
         promiseMessage.channel_id,
-        EMessageMode.CHANNEL_MESSAGE,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
         data.is_public || false,
         promiseMessage.message_id,
         {
@@ -201,7 +207,7 @@ export class TopupService {
       await this.mezon.updateMessage(
         data.clan_id!,
         promiseMessage.channel_id,
-        EMessageMode.CHANNEL_MESSAGE,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
         data.is_public || false,
         promiseMessage.message_id,
         {
@@ -241,7 +247,7 @@ export class TopupService {
       await this.mezon.updateMessage(
         data.clan_id!,
         promiseMessage.channel_id,
-        EMessageMode.CHANNEL_MESSAGE,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
         data.is_public || false,
         promiseMessage.message_id,
         {
@@ -262,7 +268,7 @@ export class TopupService {
       this.mezon.updateMessage(
         data.clan_id!,
         promiseMessage.channel_id,
-        EMessageMode.CHANNEL_MESSAGE,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
         data.is_public || false,
         promiseMessage.message_id,
         {
