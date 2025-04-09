@@ -218,6 +218,46 @@ export class TopupService {
       return;
     }
 
+    const myBalance = await this.prisma.user_balance.findUnique({
+      where: {
+        user_id: data.sender_id,
+      },
+    });
+    let mBalance: any;
+    if (!myBalance) {
+      mBalance = await this.prisma.user_balance.create({
+        data: {
+          user_id: data.sender_id,
+          balance: 0,
+          username: data.username!,
+        },
+      });
+    } else {
+      mBalance = myBalance;
+    }
+
+    if (mBalance.balance < amount) {
+      const message = `😅Bạn không có đủ tiền để chơi`;
+      await this.mezon.updateMessage(
+        data.clan_id!,
+        promiseMessage.channel_id,
+        EMessageMode.CHANNEL_MESSAGE,
+        data.is_public || false,
+        promiseMessage.message_id,
+        {
+          t: message,
+          mk: [
+            {
+              type: 'pre' as EMarkdownType,
+              e: message.length,
+              s: 0,
+            },
+          ],
+        },
+      );
+      return;
+    }
+
     await Promise.all([
       this.mezon.updateMessage(
         data.clan_id!,
