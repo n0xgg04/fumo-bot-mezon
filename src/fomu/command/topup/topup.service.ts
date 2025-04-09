@@ -165,6 +165,13 @@ export class TopupService {
         promiseMessage.message_id,
         {
           t: message,
+          mk: [
+            {
+              type: 'pre' as EMarkdownType,
+              e: message.length,
+              s: 0,
+            },
+          ],
         },
         [ref],
       );
@@ -199,6 +206,13 @@ export class TopupService {
         promiseMessage.message_id,
         {
           t: message,
+          mk: [
+            {
+              type: 'pre' as EMarkdownType,
+              e: message.length,
+              s: 0,
+            },
+          ],
         },
       );
       return;
