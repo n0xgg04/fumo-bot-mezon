@@ -154,9 +154,20 @@ export class TopupService {
       m,
       data,
     );
+    await delay(1000);
     if (!partnerId) {
       const message = `😅Bạn không có đối thủ. Hãy rep tin nhắn ai đó`;
-      await this.fumoMessage.sendSystemMessage(data, message, data);
+      await this.mezon.updateMessage(
+        data.clan_id!,
+        promiseMessage.channel_id,
+        EMessageMode.CHANNEL_MESSAGE,
+        data.is_public || false,
+        promiseMessage.message_id,
+        {
+          t: message,
+        },
+        [ref],
+      );
       return;
     }
     const partnerBalance = await this.prisma.user_balance.findUnique({
@@ -192,7 +203,7 @@ export class TopupService {
       );
       return;
     }
-    await delay(1000);
+
     await Promise.all([
       this.mezon.updateMessage(
         data.clan_id!,
