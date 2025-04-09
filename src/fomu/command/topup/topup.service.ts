@@ -25,6 +25,8 @@ const CHOICES_SUB = {
   bao: '👋BAO',
 };
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 @Injectable()
 export class TopupService {
   constructor(
@@ -178,9 +180,19 @@ export class TopupService {
 
     if (pBalance.balance < amount) {
       const message = `😅Đối thủ không có đủ tiền để chơi`;
-      await this.fumoMessage.sendSystemMessage(data, message, data);
+      await this.mezon.updateMessage(
+        data.clan_id!,
+        promiseMessage.channel_id,
+        EMessageMode.CHANNEL_MESSAGE,
+        data.is_public || false,
+        promiseMessage.message_id,
+        {
+          t: message,
+        },
+      );
       return;
     }
+    await delay(1000);
     await Promise.all([
       this.mezon.updateMessage(
         data.clan_id!,

@@ -10,7 +10,7 @@ export function getRef(message: ChannelMessage) {
     mesages_sender_avatar: message.avatar,
     message_sender_clan_nick: message.clan_nick,
     message_sender_display_name: message.display_name,
-    content: message.content.t,
+    content: JSON.stringify(message.content),
     has_attachment: Number(message.attachments?.length) > 0,
     channel_id: message.channel_id,
     mode: message.mode,
