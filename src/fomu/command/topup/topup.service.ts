@@ -390,7 +390,6 @@ export class TopupService {
                 ],
               },
             });
-            return;
           } else {
             const [userCredit, partnerCredit] = await Promise.all([
               this.prisma.user_balance.findFirst({
