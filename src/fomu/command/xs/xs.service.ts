@@ -259,33 +259,35 @@ export class XsService {
       }
     }
     // console.log(uniqueChannelById);
-    await Promise.all([
-      this.prisma.user_balance.updateMany({
-        where: {
-          user_id: {
-            in: winners.map((winner) => winner.user_id),
+    await this.prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.user_balance.updateMany({
+          where: {
+            user_id: {
+              in: winners.map((winner) => winner.user_id),
+            },
           },
-        },
-        data: {
-          balance: {
-            increment: rewardForEachWinner,
+          data: {
+            balance: {
+              increment: rewardForEachWinner,
+            },
           },
-        },
-      }),
-      this.prisma.kqxs.create({
-        data: {
-          indetifier: kqxs.time,
-          result: luckyNumber.toString(),
-        },
-      }),
-      this.prisma.xs_logs.updateMany({
-        where: {
-          is_active: true,
-        },
-        data: {
-          is_active: false,
-        },
-      }),
-    ]);
+        }),
+        tx.kqxs.create({
+          data: {
+            indetifier: kqxs.time,
+            result: luckyNumber.toString(),
+          },
+        }),
+        tx.xs_logs.updateMany({
+          where: {
+            is_active: true,
+          },
+          data: {
+            is_active: false,
+          },
+        }),
+      ]);
+    });
   }
 }
