@@ -40,6 +40,8 @@ export class XsCommand {
       }
     } else if (data?.content.t === '*giaithuong') {
       await this.xsService.giaiThuong(data);
+    } else if (data?.content.t === '*checktime') {
+      await this.xsService.checkTime(data);
     }
   }
 }

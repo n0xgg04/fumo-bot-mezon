@@ -18,7 +18,7 @@ export class XsService {
     private readonly userService: UserService,
   ) {}
 
-  private xsCost = 1;
+  private xsCost = 5000;
 
   async kqxs() {
     const response = await axios.get<XsResponse>(
@@ -93,6 +93,31 @@ export class XsService {
       return;
     }
 
+    const countMe = await this.prisma.xs_logs.findMany({
+      where: {
+        user_id: data.sender_id,
+        is_active: true,
+      },
+    });
+
+    if (countMe.length >= 10) {
+      const message = `❌ Bạn đã chơi xổ số quá nhiều lần`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+    const timeInVietnam = new Date(time);
+
+    const hours = timeInVietnam.getHours();
+    if (hours < 0 || hours >= 16) {
+      const message = `❌ Chỉ được chơi xổ số từ 00:00 đến 16:00 hàng ngày.`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
     await Promise.all([
       this.prisma.xs_logs.create({
         data: {
@@ -119,6 +144,16 @@ export class XsService {
         data,
       ),
     ]);
+  }
+
+  async checkTime(data: ChannelMessage) {
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+    const timeInVietnam = new Date(time);
+    const hours = timeInVietnam.getHours();
+    const message = `🕒 Thời gian hiện tại: ${time}\n🕒 Giờ hiện tại: ${hours}`;
+    await this.fumoMessage.sendSystemMessage(data, message, data);
   }
 
   async checkXs() {

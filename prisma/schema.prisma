@@ -120,7 +120,6 @@ model xs_logs {
   is_public  Boolean  @default(false)
   username   String   @default("")
 
-  @@unique([user_id])
   @@index([user_id])
 }
 
