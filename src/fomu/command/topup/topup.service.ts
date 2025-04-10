@@ -62,6 +62,13 @@ export class TopupService {
                 username: data.sender_name,
               },
             });
+            await tx.transaction_logs.create({
+              data: {
+                transaction_id: data.transaction_id,
+                user_id: data.sender_id,
+                amount: data.amount,
+              },
+            });
           } else {
             await tx.user_balance.update({
               where: {

@@ -235,7 +235,7 @@ export class XsService {
     const rewardTotal = kq.reduce((acc, winner) => acc + winner.cost, 0);
     const rewardForEachWinner = Math.floor(rewardTotal / winners.length);
 
-    const uniqueChannelById = uniqBy(winners, 'channel_id');
+    const uniqueChannelById = uniqBy(kq, 'channel_id');
 
     const message = `🎉 Kết quả xổ số ngày ${kqxs.time}\n🔑 Con số may mắn: ${luckyNumber}\n💰 Tổng thưởng: ${rewardTotal} token\n💰 Thưởng cho mỗi người: ${rewardForEachWinner} token\n🎉 Xin chúc mừng ${winners.map((winner) => winner.username).join(', ')} đã chiến thắng.`;
 
