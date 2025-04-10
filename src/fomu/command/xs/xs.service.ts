@@ -238,20 +238,27 @@ export class XsService {
     const uniqueChannelById = uniqBy(kq, 'channel_id');
 
     const message = `🎉 Kết quả xổ số ngày ${kqxs.time}\n🔑 Con số may mắn: ${luckyNumber}\n💰 Tổng thưởng: ${rewardTotal} token\n💰 Thưởng cho mỗi người: ${rewardForEachWinner} token\n🎉 Xin chúc mừng ${winners.map((winner) => winner.username).join(', ')} đã chiến thắng.`;
-
+    const channelSentList: string[] = [];
     for (const channel of uniqueChannelById) {
       const channelId = channel.channel_id;
-      await this.fumoMessage.sendSystemMessage(
-        {
-          channel_id: channelId,
-          clan_id: channel.clan_id,
-          mode: EMessageMode.CHANNEL_MESSAGE,
-          is_public: channel.is_public,
-        } as ChannelMessage,
-        message,
-        {} as ChannelMessage,
-      );
+      try {
+        if (channelSentList.includes(channelId)) continue;
+        await this.fumoMessage.sendSystemMessage(
+          {
+            channel_id: channelId,
+            clan_id: channel.clan_id,
+            mode: EMessageMode.CHANNEL_MESSAGE,
+            is_public: channel.is_public,
+          } as ChannelMessage,
+          message,
+          {} as ChannelMessage,
+        );
+        channelSentList.push(channelId);
+      } catch (error) {
+        console.log(error);
+      }
     }
+    // console.log(uniqueChannelById);
     await Promise.all([
       this.prisma.user_balance.updateMany({
         where: {
