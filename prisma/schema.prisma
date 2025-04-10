@@ -54,15 +54,21 @@ model user_balance {
 }
 
 model transaction_logs {
-  id             Int      @id @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   user_id        String
   amount         Int
-  transaction_id String
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  transaction_id String           @default(uuid())
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  type           ETransactionType @default(DEPOSIT)
 
   @@unique([transaction_id])
   @@index([user_id, transaction_id])
+}
+
+enum ETransactionType {
+  DEPOSIT
+  WITHDRAW
 }
 
 model keobuabao_game {

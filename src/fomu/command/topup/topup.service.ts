@@ -10,7 +10,11 @@ import {
 } from 'mezon-sdk';
 import { getRef } from 'src/common/utils/get-ref';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
-import { EKeobuabaoGameStatus, KeoBuaBaoEnum } from '@prisma/client';
+import {
+  EKeobuabaoGameStatus,
+  ETransactionType,
+  KeoBuaBaoEnum,
+} from '@prisma/client';
 import { FumoMessageService } from 'src/mezon/fumo-message.module';
 
 const CHOICES = {
@@ -142,6 +146,13 @@ export class TopupService {
             balance: {
               decrement: amount,
             },
+          },
+        });
+        await tx.transaction_logs.create({
+          data: {
+            user_id: data.sender_id,
+            amount: amount,
+            type: ETransactionType.WITHDRAW,
           },
         });
       });
