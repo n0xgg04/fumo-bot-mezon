@@ -38,6 +38,8 @@ export class XsCommand {
         const message = `❌ Bạn không có quyền sử dụng lệnh này`;
         await this.fumoMessage.sendSystemMessage(data, message, data);
       }
+    } else if (data?.content.t === '*giaithuong') {
+      await this.xsService.giaiThuong(data);
     }
   }
 }

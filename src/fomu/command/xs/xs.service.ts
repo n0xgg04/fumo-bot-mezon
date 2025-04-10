@@ -71,6 +71,20 @@ export class XsService {
       data,
     );
   }
+
+  async giaiThuong(data: ChannelMessage) {
+    const balace = await this.prisma.xs_logs.aggregate({
+      where: {
+        is_active: true,
+      },
+      _sum: {
+        cost: true,
+      },
+    });
+    const message = `💰 Tổng số tiền dành cho người chiến thắng: ${balace._sum.cost} token`;
+    await this.fumoMessage.sendSystemMessage(data, message, data);
+  }
+
   async playXS(data: ChannelMessage, number: number) {
     const user = await this.userService.getUserBalance(data);
     if (!user || user?.balance < this.xsCost) {
@@ -78,44 +92,33 @@ export class XsService {
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
-    const check = await this.prisma.xs_logs.findFirst({
-      where: {
-        user_id: data.sender_id,
-        is_active: true,
-      },
-    });
-    if (check) {
-      const message = `❌ Bạn đã chơi xổ số hôm nay rồi`;
-      await this.fumoMessage.sendSystemMessage(data, message, data);
-      return;
-    } else {
-      await Promise.all([
-        this.prisma.xs_logs.create({
-          data: {
-            user_id: data.sender_id,
-            cost: this.xsCost,
-            number,
-            channel_id: data.channel_id,
-            clan_id: data.clan_id,
-            is_public: data.is_public,
-            username: data.username,
+
+    await Promise.all([
+      this.prisma.xs_logs.create({
+        data: {
+          user_id: data.sender_id,
+          cost: this.xsCost,
+          number,
+          channel_id: data.channel_id,
+          clan_id: data.clan_id,
+          is_public: data.is_public,
+          username: data.username,
+        },
+      }),
+      this.prisma.user_balance.update({
+        where: { user_id: data.sender_id },
+        data: {
+          balance: {
+            decrement: this.xsCost,
           },
-        }),
-        this.prisma.user_balance.update({
-          where: { user_id: data.sender_id },
-          data: {
-            balance: {
-              decrement: this.xsCost,
-            },
-          },
-        }),
-        await this.fumoMessage.sendSystemMessage(
-          data,
-          `🎰 Đã cược số ${number} với giá ${this.xsCost} token\nKết quả sẽ được công bố khi có kết quả.`,
-          data,
-        ),
-      ]);
-    }
+        },
+      }),
+      await this.fumoMessage.sendSystemMessage(
+        data,
+        `🎰 Đã cược số ${number} với giá ${this.xsCost} token\nKết quả sẽ được công bố khi có kết quả.`,
+        data,
+      ),
+    ]);
   }
 
   async checkXs() {
