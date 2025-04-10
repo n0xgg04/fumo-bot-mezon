@@ -27,6 +27,28 @@ export class XsService {
     return response.data;
   }
 
+  async myNumbers(data: ChannelMessage) {
+    const numbers = await this.prisma.xs_logs.findMany({
+      where: {
+        user_id: data.sender_id,
+        is_active: true,
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+    });
+    if (numbers.length > 0) {
+      const m = `🔑 Các con số của bạn đã chơi lần lượt là: ${numbers.map((number) => number.number).join(', ')}. Hãy đón chờ kết quả xổ số ngày hôm nay nhé.`;
+      await this.fumoMessage.sendSystemMessage(data, m, data);
+    } else {
+      await this.fumoMessage.sendSystemMessage(
+        data,
+        '❌ Bạn chưa chơi xổ số',
+        data,
+      );
+    }
+  }
+
   async getKqxs(data: ChannelMessage) {
     const placeholder = await this.fumoMessage.sendSystemMessage(
       data,

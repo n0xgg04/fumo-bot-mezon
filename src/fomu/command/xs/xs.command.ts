@@ -42,6 +42,8 @@ export class XsCommand {
       await this.xsService.giaiThuong(data);
     } else if (data?.content.t === '*checktime') {
       await this.xsService.checkTime(data);
+    } else if (data?.content.t === '*mynumbers') {
+      await this.xsService.myNumbers(data);
     }
   }
 }

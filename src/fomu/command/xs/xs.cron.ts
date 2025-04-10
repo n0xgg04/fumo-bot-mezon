@@ -9,7 +9,7 @@ export class XsCron {
     private readonly logger: Logger,
   ) {}
 
-  @Cron('*/5 9-13 * * *')
+  @Cron('*/2 * * * *')
   async handleCron() {
     this.logger.log('CHECKING XSMB');
     await this.xsService.checkXs();
