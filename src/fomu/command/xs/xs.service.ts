@@ -193,6 +193,7 @@ export class XsService {
     if (!luckyNum) return;
 
     const luckyNumber = parseInt(luckyNum);
+    if (isNaN(luckyNumber)) return;
 
     const kq = await this.prisma.xs_logs.findMany({
       where: {
