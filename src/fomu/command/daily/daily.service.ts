@@ -15,6 +15,31 @@ export class DailyService {
     private readonly fumoMessage: FumoMessageService,
   ) {}
 
+  async handleBuzz(message: ChannelMessage) {
+    const ref = getRef(message);
+    await this.mezon.sendMessageToChannel({
+      clan_id: message.clan_id!,
+      channel_id: message.channel_id,
+      is_public: message.is_public || false,
+      mode: message.mode ?? EMessageMode.CHANNEL_MESSAGE,
+      msg: {
+        t: '',
+      },
+      ref: [ref],
+      attachments: [
+        {
+          filename: 'image.png',
+          size: 633,
+          url: 'https://i.ibb.co/4nNK0FTh/1744275493060-0image.png',
+          filetype: 'image/png',
+          width: 41,
+          height: 14,
+          thumbnail: 'BUZZ',
+        },
+      ],
+    });
+  }
+
   async handleDaily(message: ChannelMessage) {
     const ref = getRef(message);
     const keyword = message.content.t!.substring(7);

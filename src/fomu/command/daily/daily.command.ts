@@ -14,6 +14,8 @@ export class DailyCommand {
         return;
       }
       await this.dailyService.handleDaily(message);
+    } else if (message.content.t === '*buzz') {
+      await this.dailyService.handleBuzz(message);
     }
   }
 
