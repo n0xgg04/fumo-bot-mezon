@@ -103,7 +103,7 @@ export class XsService {
         cost: true,
       },
     });
-    const message = `💰 Tổng số tiền dành cho người chiến thắng: ${balace._sum.cost} token`;
+    const message = `💰 Tổng số tiền dành cho người chiến thắng: ${balace._sum.cost || 0} token`;
     await this.fumoMessage.sendSystemMessage(data, message, data);
   }
 
@@ -243,6 +243,7 @@ export class XsService {
       const channelId = channel.channel_id;
       try {
         if (channelSentList.includes(channelId)) continue;
+        channelSentList.push(channelId);
         await this.fumoMessage.sendSystemMessage(
           {
             channel_id: channelId,
@@ -253,7 +254,6 @@ export class XsService {
           message,
           {} as ChannelMessage,
         );
-        channelSentList.push(channelId);
       } catch (error) {
         console.log(error);
       }
