@@ -370,6 +370,7 @@ export class TopupService {
           is_public_channel: data.is_public || false,
           user_name_create: data.username!,
           only_for_user_name: data.references?.[0]?.message_sender_username,
+          mode: String(data.mode || EMessageMode.CHANNEL_MESSAGE),
         },
       }),
     ]);
@@ -425,7 +426,7 @@ export class TopupService {
           this.mezon.updateMessage(
             game[0].clan_id,
             game[0].channel_id,
-            EMessageMode.CHANNEL_MESSAGE,
+            Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
             game[0].is_public_channel,
             game[0].message_id,
             {
@@ -462,7 +463,7 @@ export class TopupService {
           clan_id: game[0].clan_id,
           channel_id: game[0].channel_id,
           is_public: game[0].is_public_channel,
-          mode: EMessageMode.CHANNEL_MESSAGE,
+          mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
           msg: {
             t: mess,
             mk: [
@@ -495,7 +496,7 @@ export class TopupService {
               clan_id: game[0].clan_id,
               channel_id: game[0].channel_id,
               is_public: game[0].is_public_channel,
-              mode: EMessageMode.CHANNEL_MESSAGE,
+              mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
               msg: {
                 t: mess,
                 mk: [
@@ -528,7 +529,7 @@ export class TopupService {
                     clan_id: game[0].clan_id,
                     channel_id: game[0].channel_id,
                     is_public: game[0].is_public_channel,
-                    mode: EMessageMode.CHANNEL_MESSAGE,
+                    mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
                     msg: {
                       t: m1,
                       mk: [
@@ -589,7 +590,7 @@ export class TopupService {
                   clan_id: game[0].clan_id,
                   channel_id: game[0].channel_id,
                   is_public: game[0].is_public_channel,
-                  mode: EMessageMode.CHANNEL_MESSAGE,
+                  mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
                   msg: {
                     t: mess,
                     mk: [
@@ -652,7 +653,7 @@ export class TopupService {
           await this.mezon.updateMessage(
             game[0].clan_id,
             game[0].channel_id,
-            EMessageMode.CHANNEL_MESSAGE,
+            Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
             game[0].is_public_channel,
             game[0].message_id,
             {
@@ -688,7 +689,7 @@ export class TopupService {
               clan_id: game[0].clan_id,
               channel_id: game[0].channel_id,
               is_public: game[0].is_public_channel,
-              mode: EMessageMode.CHANNEL_MESSAGE,
+              mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
               msg: {
                 t: messageC,
                 mk: [
