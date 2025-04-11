@@ -484,7 +484,7 @@ export class TopupService {
           },
         });
 
-        if (!userBalance?.balance || userBalance.balance < game[0].cost) {
+        if (userBalance && userBalance.balance < game[0].cost) {
           const mess = `💸Bạn (${userBalance?.username}) không có đủ tiền để chơi`;
           await this.mezon.sendMessageToChannel({
             clan_id: game[0].clan_id,
