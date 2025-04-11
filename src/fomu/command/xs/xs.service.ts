@@ -142,7 +142,7 @@ export class XsService {
     const timeInVietnam = new Date(time);
 
     const hours = timeInVietnam.getHours();
-    if (hours < 0 || hours >= 16) {
+    if (hours < 0 || hours >= 18) {
       const message = `❌ Chỉ được chơi xổ số từ 00:00 đến 16:00 hàng ngày.`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
