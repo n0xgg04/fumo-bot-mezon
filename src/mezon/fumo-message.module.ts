@@ -31,27 +31,23 @@ export class FumoMessageService {
     message: string,
     refContext?: ChannelMessage,
   ) {
-    try {
-      return this.mezonService.sendMessageToChannel({
-        clan_id: context.clan_id!,
-        channel_id: context.channel_id,
-        is_public: context.is_public || false,
-        mode: context.mode || EMessageMode.CHANNEL_MESSAGE,
-        msg: {
-          t: message,
-          mk: [
-            {
-              type: 'pre' as EMarkdownType,
-              e: message.length,
-              s: 0,
-            },
-          ],
-        },
-        ref: refContext ? [getRef(refContext)] : undefined,
-      });
-    } catch (error) {
-      this.logger.error('Error sending system message', error);
-    }
+    return this.mezonService.sendMessageToChannel({
+      clan_id: context.clan_id!,
+      channel_id: context.channel_id,
+      is_public: context.is_public || false,
+      mode: context.mode || EMessageMode.CHANNEL_MESSAGE,
+      msg: {
+        t: message,
+        mk: [
+          {
+            type: 'pre' as EMarkdownType,
+            e: message.length,
+            s: 0,
+          },
+        ],
+      },
+      ref: refContext ? [getRef(refContext)] : undefined,
+    });
   }
 
   async sendTextDM(context: ChannelMessage | string, message: string) {

@@ -55,6 +55,7 @@ export class XsService {
       'Đang tra cứu kết quả xổ số...',
       data,
     );
+    if (!placeholder) return;
     const response = await this.kqxs();
     const { countNumbers, time, results } = response;
     let message = `🔍Kết quả xổ số ngày ${time}\n`;

@@ -178,6 +178,7 @@ export class TopupService {
       m,
       data,
     );
+    if (!promiseMessage) return;
     await delay(1000);
     if (!partnerId) {
       const message = `😅Bạn không có đối thủ. Hãy rep tin nhắn ai đó`;

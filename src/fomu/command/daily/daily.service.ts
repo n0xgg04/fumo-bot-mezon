@@ -52,6 +52,8 @@ export class DailyService {
       message,
     );
 
+    if (!promiseReply) return;
+
     const date = new Date().toLocaleDateString('vi-VN');
     const daily = await this.aiService.generateDaily(keyword, date);
     await this.mezon.updateMessage(

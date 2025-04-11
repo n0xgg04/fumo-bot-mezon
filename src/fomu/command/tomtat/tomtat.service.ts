@@ -38,6 +38,8 @@ export class TomTatService {
       ref: [ref],
     });
 
+    if (!promiseMessage) return;
+
     const messages = await this.prisma.message_logs.findMany({
       where: {
         channel_id: message.channel_id,
