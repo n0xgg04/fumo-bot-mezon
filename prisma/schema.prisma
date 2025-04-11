@@ -103,6 +103,7 @@ model keobuabao_game {
   user_name_create    String                @default("")
   only_for_user_name  String                @default("")
   is_public_channel   Boolean               @default(false)
+  mode                String                @default("2") //2,4
 
   @@unique([user_id_create, only_for_user_id, clan_id, channel_id, message_id])
   @@index([user_id_create])

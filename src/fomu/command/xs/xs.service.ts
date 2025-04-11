@@ -110,6 +110,13 @@ export class XsService {
 
   async playXS(data: ChannelMessage, number: number) {
     const user = await this.userService.getUserBalance(data);
+
+    if (number < 0 || number > 99 || isNaN(number)) {
+      const message = `❌ Số không hợp lệ\nSố phải lớn hơn 0 và nhỏ hơn 99`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
     if (!user || user?.balance < this.xsCost) {
       const message = `❌ Bạn không có đủ ${this.xsCost} token để chơi xổ số`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
