@@ -94,7 +94,9 @@ export class TopupService {
           }
         }),
       ]);
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async ping(data: ChannelMessage) {
