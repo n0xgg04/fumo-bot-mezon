@@ -343,6 +343,8 @@ export class TopupService {
           message_id: promiseMessage.message_id,
           clan_id: data.clan_id!,
           is_public_channel: data.is_public || false,
+          user_name_create: data.username!,
+          only_for_user_name: data.references?.[0]?.message_sender_username,
         },
       }),
     ]);
@@ -502,7 +504,7 @@ export class TopupService {
                     is_public: game[0].is_public_channel,
                     mode: EMessageMode.CHANNEL_MESSAGE,
                     msg: {
-                      t: `📣${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`,
+                      t: `📣KẾT QUẢ\n${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`,
                     },
                   }),
                   tx.user_balance.update({
@@ -529,10 +531,26 @@ export class TopupService {
                       status: EKeobuabaoGameStatus.ENDED,
                     },
                   }),
+                  tx.transaction_send_logs.createMany({
+                    data: [
+                      {
+                        user_id: data.user_id,
+                        to_user_id: partnerChosen.user_id,
+                        amount: game[0].cost,
+                        note: 'win_kbb',
+                      },
+                      {
+                        user_id: partnerChosen.user_id,
+                        to_user_id: data.user_id,
+                        amount: game[0].cost,
+                        note: 'lose_kbb',
+                      },
+                    ],
+                  }),
                 ]);
               });
             } else {
-              const mess = `📣${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} \n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${partnerCredit?.username} nhận ${game[0].cost} token từ ${userCredit?.username}`;
+              const mess = `📣KẾT QUẢ\n${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} \n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${partnerCredit?.username} nhận ${game[0].cost} token từ ${userCredit?.username}`;
               await Promise.all([
                 this.mezon.sendMessageToChannel({
                   clan_id: game[0].clan_id,
@@ -551,31 +569,48 @@ export class TopupService {
                   },
                 }),
                 this.prisma.$transaction(async (tx) => {
-                  await tx.user_balance.update({
-                    where: {
-                      user_id: data.user_id,
-                    },
-                    data: {
-                      balance: { decrement: game[0].cost },
-                    },
-                  });
-
-                  await tx.user_balance.update({
-                    where: {
-                      user_id: partnerChosen.user_id,
-                    },
-                    data: {
-                      balance: { increment: game[0].cost },
-                    },
-                  });
-                  await tx.keobuabao_game.update({
-                    where: {
-                      id: game[0].id,
-                    },
-                    data: {
-                      status: EKeobuabaoGameStatus.ENDED,
-                    },
-                  });
+                  await Promise.all([
+                    tx.user_balance.update({
+                      where: {
+                        user_id: data.user_id,
+                      },
+                      data: {
+                        balance: { decrement: game[0].cost },
+                      },
+                    }),
+                    tx.user_balance.update({
+                      where: {
+                        user_id: partnerChosen.user_id,
+                      },
+                      data: {
+                        balance: { increment: game[0].cost },
+                      },
+                    }),
+                    tx.keobuabao_game.update({
+                      where: {
+                        id: game[0].id,
+                      },
+                      data: {
+                        status: EKeobuabaoGameStatus.ENDED,
+                      },
+                    }),
+                    tx.transaction_send_logs.createMany({
+                      data: [
+                        {
+                          user_id: data.user_id,
+                          to_user_id: partnerChosen.user_id,
+                          amount: game[0].cost,
+                          note: 'win_kbb',
+                        },
+                        {
+                          user_id: partnerChosen.user_id,
+                          to_user_id: data.user_id,
+                          amount: game[0].cost,
+                          note: 'lose_kbb',
+                        },
+                      ],
+                    }),
+                  ]);
                 }),
               ]);
             }

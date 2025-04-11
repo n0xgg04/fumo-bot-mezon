@@ -71,6 +71,23 @@ enum ETransactionType {
   WITHDRAW
 }
 
+model transaction_send_logs {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  amount     Int
+  to_user_id String
+  note       String   @default("kbb")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([user_id])
+}
+
+enum ETransactionSendStatus {
+  PLAY_KBB
+  PLAY_XS
+}
+
 model keobuabao_game {
   id                  Int                   @id @default(autoincrement())
   user_id_create      String
