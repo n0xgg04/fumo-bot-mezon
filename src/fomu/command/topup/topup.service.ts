@@ -515,6 +515,32 @@ export class TopupService {
           },
         });
         if (partnerChosen) {
+          //parnerBalance
+          const partnerBalance = await this.prisma.user_balance.findUnique({
+            where: {
+              user_id: partnerChosen.user_id,
+            },
+          });
+          if (partnerBalance && partnerBalance.balance < game[0].cost) {
+            const mess = `🚫Ván bị huỷ do người chơi ${partnerBalance?.username} không có khả năng chi trả.`;
+            await this.mezon.sendMessageToChannel({
+              clan_id: game[0].clan_id,
+              channel_id: game[0].channel_id,
+              is_public: game[0].is_public_channel,
+              mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
+              msg: {
+                t: mess,
+                mk: [
+                  {
+                    type: 'pre' as EMarkdownType,
+                    e: mess.length,
+                    s: 0,
+                  },
+                ],
+              },
+            });
+            return;
+          }
           const myChoice = CHOICES[data.button_id] as KeoBuaBaoEnum;
           const result = await this.checkWin(
             myChoice,
