@@ -179,29 +179,8 @@ export class TopupService {
       data,
     );
     if (!promiseMessage) return;
+
     await delay(1000);
-    if (!partnerId) {
-      const message = `😅Bạn không có đối thủ. Hãy rep tin nhắn ai đó`;
-      await this.mezon.updateMessage(
-        data.clan_id!,
-        promiseMessage.channel_id,
-        data.mode || EMessageMode.CHANNEL_MESSAGE,
-        data.is_public || false,
-        promiseMessage.message_id,
-        {
-          t: message,
-          mk: [
-            {
-              type: 'pre' as EMarkdownType,
-              e: message.length,
-              s: 0,
-            },
-          ],
-        },
-        [ref],
-      );
-      return;
-    }
     if (amount < 0 || amount > 1000000 || isNaN(amount)) {
       const message = `😅Số tiền không hợp lệ\nSố tiền phải lớn hơn 0 và nhỏ hơn 1.000.000`;
       await this.mezon.updateMessage(
@@ -224,6 +203,30 @@ export class TopupService {
       );
       return;
     }
+
+    if (!partnerId) {
+      const message = `😅Bạn không có đối thủ. Hãy rep tin nhắn ai đó`;
+      await this.mezon.updateMessage(
+        data.clan_id!,
+        promiseMessage.channel_id,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
+        data.is_public || false,
+        promiseMessage.message_id,
+        {
+          t: message,
+          mk: [
+            {
+              type: 'pre' as EMarkdownType,
+              e: message.length,
+              s: 0,
+            },
+          ],
+        },
+        [ref],
+      );
+      return;
+    }
+
     const partnerBalance = await this.prisma.user_balance.findUnique({
       where: {
         user_id: partnerId,
