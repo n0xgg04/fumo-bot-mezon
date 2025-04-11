@@ -478,6 +478,34 @@ export class TopupService {
           },
         });
       } else {
+        const userBalance = await this.prisma.user_balance.findUnique({
+          where: {
+            user_id: data.user_id,
+          },
+        });
+
+        if (!userBalance?.balance || userBalance.balance < game[0].cost) {
+          const mess = `💸Bạn (${userBalance?.username}) không có đủ tiền để chơi`;
+          await this.mezon.sendMessageToChannel({
+            clan_id: game[0].clan_id,
+            channel_id: game[0].channel_id,
+            is_public: game[0].is_public_channel,
+            mode: Number(game[0].mode || EMessageMode.CHANNEL_MESSAGE),
+            msg: {
+              t: mess,
+              mk: [
+                {
+                  type: 'pre' as EMarkdownType,
+                  e: mess.length,
+                  s: 0,
+                },
+              ],
+            },
+          });
+          return;
+        }
+
+        //!
         const partnerChosen = await this.prisma.keobuabao_game_logs.findFirst({
           where: {
             game_id: game[0].id,
