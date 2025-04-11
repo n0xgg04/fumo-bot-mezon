@@ -497,6 +497,7 @@ export class TopupService {
             ]);
             if (result === 0) {
               await this.prisma.$transaction(async (tx) => {
+                const m1 = `📣KẾT QUẢ\n${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`;
                 await Promise.all([
                   this.mezon.sendMessageToChannel({
                     clan_id: game[0].clan_id,
@@ -504,7 +505,14 @@ export class TopupService {
                     is_public: game[0].is_public_channel,
                     mode: EMessageMode.CHANNEL_MESSAGE,
                     msg: {
-                      t: `📣KẾT QUẢ\n${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`,
+                      t: m1,
+                      mk: [
+                        {
+                          type: 'pre' as EMarkdownType,
+                          e: m1.length,
+                          s: 0,
+                        },
+                      ],
                     },
                   }),
                   tx.user_balance.update({
