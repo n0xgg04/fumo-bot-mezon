@@ -37,7 +37,11 @@ export class MezonService {
   }
 
   async createDMChannel(userId: string) {
-    return this.client.createDMchannel(userId);
+    try {
+      return this.client.createDMchannel(userId);
+    } catch (error) {
+      this.logger.error('Error creating DM channel', error);
+    }
   }
 
   async sendMessageToChannel({
@@ -50,16 +54,20 @@ export class MezonService {
     attachments,
     ref,
   }: MezonMessageToChannel) {
-    return await this.client.sendMessage(
-      clan_id,
-      channel_id,
-      mode,
-      is_public,
-      msg,
-      mentions,
-      attachments,
-      ref,
-    );
+    try {
+      return await this.client.sendMessage(
+        clan_id,
+        channel_id,
+        mode,
+        is_public,
+        msg,
+        mentions,
+        attachments,
+        ref,
+      );
+    } catch (error) {
+      this.logger.error('Error sending message to channel', error);
+    }
   }
 
   async sendMessage(replyMessage: MezonSendMessageToChannelCore) {
