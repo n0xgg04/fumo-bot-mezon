@@ -153,6 +153,14 @@ export class XsService {
           username: data.username,
         },
       }),
+      this.prisma.transaction_send_logs.create({
+        data: {
+          user_id: data.sender_id,
+          amount: this.xsCost,
+          to_user_id: 'fumo',
+          note: `xs_${time}`,
+        },
+      }),
       this.prisma.user_balance.update({
         where: { user_id: data.sender_id },
         data: {
@@ -279,6 +287,14 @@ export class XsService {
             indetifier: kqxs.time,
             result: luckyNumber.toString(),
           },
+        }),
+        tx.transaction_send_logs.createMany({
+          data: winners.map((winner) => ({
+            user_id: 'fumo',
+            amount: rewardForEachWinner,
+            to_user_id: winner.user_id,
+            note: `xs_${kqxs.time}`,
+          })),
         }),
         tx.xs_logs.updateMany({
           where: {
