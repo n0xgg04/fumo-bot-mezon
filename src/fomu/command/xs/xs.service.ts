@@ -139,11 +139,10 @@ export class XsService {
     const time = new Date().toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
     });
-    const timeInVietnam = new Date(time);
+    const hours = Number(String(time).substring(0, 2));
 
-    const hours = timeInVietnam.getHours();
     if (hours < 0 || hours >= 18) {
-      const message = `❌ Chỉ được chơi xổ số từ 00:00 đến 16:00 hàng ngày.`;
+      const message = `❌ Chỉ được chơi xổ số từ 00:00 đến 18:00 hàng ngày.`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
@@ -188,8 +187,7 @@ export class XsService {
     const time = new Date().toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
     });
-    const timeInVietnam = new Date(time);
-    const hours = timeInVietnam.getHours();
+    const hours = Number(String(time).substring(0, 2));
     const message = `🕒 Thời gian hiện tại: ${time}\n🕒 Giờ hiện tại: ${hours}`;
     await this.fumoMessage.sendSystemMessage(data, message, data);
   }
