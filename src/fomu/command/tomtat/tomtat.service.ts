@@ -26,6 +26,19 @@ export class TomTatService {
   async handleTomTat(message: ChannelMessage, lastMinute: number) {
     const ref = getRef(message);
     // { type: 'pre', e: 9, s: 3 }
+    if (lastMinute > 15) {
+      await this.mezon.sendMessageToChannel({
+        channel_id: message.channel_id,
+        clan_id: message.clan_id!,
+        is_public: message.is_public || false,
+        mode: message.mode ?? EMessageMode.CHANNEL_MESSAGE,
+        msg: {
+          t: 'Giới hạn thời gian tối đa là 15 phút',
+        },
+        ref: [ref],
+      });
+      return;
+    }
 
     const promiseMessage = await this.mezon.sendMessageToChannel({
       channel_id: message.channel_id,
