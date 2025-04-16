@@ -139,34 +139,53 @@ export class TopupService {
       const message = `💸Số dư của bạn không đủ để rút hoặc số tiền rút không hợp lệ`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
     } else {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.user_balance.update({
-          where: {
-            user_id: data.sender_id,
+      //check
+      const fumoSent = await this.prisma.transaction_send_logs.findMany({
+        where: {
+          user_id: 'fumo',
+          to_user_id: data.sender_id,
+          created_at: {
+            gte: new Date(Date.now() - 1000 * 60 * 60 * 24),
           },
-          data: {
-            balance: {
-              decrement: amount,
+          note: {
+            startsWith: 'lot_',
+          },
+        },
+      });
+
+      if (fumoSent.length != 0) {
+        const message = `Bạn vừa thắng giải Lot, Fumo cần xác thực lại số tiền thắng\nVui lòng chờ 24h để rút lại`;
+        await this.fumoMessage.sendSystemMessage(data, message, data);
+      } else {
+        await this.prisma.$transaction(async (tx) => {
+          await tx.user_balance.update({
+            where: {
+              user_id: data.sender_id,
             },
-          },
+            data: {
+              balance: {
+                decrement: amount,
+              },
+            },
+          });
+          await tx.transaction_logs.create({
+            data: {
+              user_id: data.sender_id,
+              amount: amount,
+              type: ETransactionType.WITHDRAW,
+            },
+          });
         });
-        await tx.transaction_logs.create({
-          data: {
-            user_id: data.sender_id,
-            amount: amount,
-            type: ETransactionType.WITHDRAW,
-          },
+        await this.mezon.sendTokenToUser({
+          sender_id: data.sender_id,
+          sender_name: data.username!,
+          receiver_id: data.sender_id,
+          amount: amount,
+          note: `Rút ${amount} token`,
         });
-      });
-      await this.mezon.sendTokenToUser({
-        sender_id: data.sender_id,
-        sender_name: data.username!,
-        receiver_id: data.sender_id,
-        amount: amount,
-        note: `Rút ${amount} token`,
-      });
-      const message = `💸Rút ${amount} token thành công`;
-      await this.fumoMessage.sendSystemMessage(data, message, data);
+        const message = `💸Rút ${amount} token thành công`;
+        await this.fumoMessage.sendSystemMessage(data, message, data);
+      }
     }
   }
 

@@ -8,6 +8,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator kysely {
+  provider     = "prisma-kysely"
+  output       = "../src/db"
+  fileName     = "types.ts"
+  enumFileName = "enums.ts"
+}
+
 datasource db {
   provider     = "mysql"
   url          = env("DATABASE_URL")
@@ -143,6 +150,24 @@ model xs_logs {
   clan_id    String   @default("")
   is_public  Boolean  @default(false)
   username   String   @default("")
+  mode       String   @default("2")
+
+  @@index([user_id])
+}
+
+model lot_logs {
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  number     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  cost       Int
+  is_active  Boolean  @default(true)
+  channel_id String   @default("")
+  clan_id    String   @default("")
+  is_public  Boolean  @default(false)
+  username   String   @default("")
+  mode       String   @default("2")
 
   @@index([user_id])
 }

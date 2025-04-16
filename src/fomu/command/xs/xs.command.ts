@@ -12,10 +12,33 @@ export class XsCommand {
   ) {}
 
   @OnEvent(Events.ChannelMessage)
+  async handleLotMessage(data: ChannelMessage) {
+    if (data.content.t?.startsWith('*lot')) {
+      const numbers = data.content.t.split(' ').slice(1);
+      const numberArray = numbers.map((number) => parseInt(number));
+      if (numberArray.every((number) => !isNaN(number))) {
+        await this.xsService.playLot(data, numberArray);
+      } else {
+        const message = `❌ Sai cú pháp, vui lòng sử dụng lại lệnh`;
+        await this.fumoMessage.sendSystemMessage(data, message, data);
+      }
+    } else if (data.content.t?.startsWith('*giaithuonglot')) {
+      await this.xsService.giaiThuongLot(data);
+    } else if (data.content.t?.startsWith('*thelelot')) {
+      await this.xsService.theLeLot(data);
+    } else if (data.content.t?.startsWith('*mylot')) {
+      await this.xsService.getLotNumbers(data);
+    }
+  }
+
+  @OnEvent(Events.ChannelMessage)
   async handleChannelMessage(data: ChannelMessage) {
     if (data.content.t === '*fxsmb') {
       await this.xsService.getKqxs(data);
-    } else if (data.content.t?.startsWith('*fxs')) {
+    } else if (
+      data.content.t?.startsWith('*fxs') ||
+      data.content.t?.startsWith('*datso')
+    ) {
       const number = parseInt(data.content.t.split(' ')[1]);
       if (!isNaN(number)) {
         await this.xsService.playXS(data, number);

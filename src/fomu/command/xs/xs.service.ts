@@ -8,6 +8,8 @@ import { MezonService } from 'src/mezon/mezon.service';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { UserService } from '../../user-service';
 import { uniqBy } from 'lodash';
+import { db } from 'src/db';
+import { InferResult, sql } from 'kysely';
 
 @Injectable()
 export class XsService {
@@ -19,12 +21,37 @@ export class XsService {
   ) {}
 
   private xsCost = 5000;
+  private lotCost = 5000;
+
+  async getLotNumbers(data: ChannelMessage) {
+    const numbers = await this.prisma.lot_logs.findMany({
+      where: {
+        is_active: true,
+        created_at: {
+          gte: new Date(new Date().setDate(new Date().getDate() - 10)),
+        },
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+    const message = `🔑 Các con số (LOT) đã chơi lần lượt là: ${numbers.map((number) => number.number).join(', ')}\nHãy cầu nguyện để may mắn đến với bạn!`;
+    await this.fumoMessage.sendSystemMessage(data, message, data);
+  }
 
   async kqxs() {
     const response = await axios.get<XsResponse>(
       'https://api-xsmb-today.onrender.com/api/v1',
     );
     return response.data;
+  }
+
+  async theLeLot(data: ChannelMessage) {
+    await this.fumoMessage.sendSystemMessage(
+      data,
+      `🎉 THỂ LỆ CHƠI LOT\nMỗi ngày, bạn có thể gieo "may mắn" bằng cách mua số, giá trị mỗi số là 5.000 token, mua tối đa 4 số mỗi ngày. Mỗi số bạn mua sẽ có hạn sử dụng trong vòng 10 ngày kể từ thời điểm bạn mua, sau 10 ngày hoặc khi có người chiến thắng sẽ không còn hiệu lực nữa.\nVào 18:30 ngày ngày, Fumo lấy 2 cặp số dựa trên 4 số đầu của kết quả xổ số miền Bắc ngày hôm đó. Giải thưởng sẽ được trao cho người may mắn sở hữu 2 cặp số (còn hạn sử dụng và 2 số khác nhau) trùng với 2 cặp số may mắn ngày hôm đó. Nếu 2 cặp số may mắn trùng nhau, sẽ không tính kết quả ngày hôm đó. \nNếu không có ai nhận được giải, giải thưởng sẽ được cộng dồn sang ngày hôm sau.\nVí dụ: Ngày thứ nhất, bạn mua 2 cặp số 12 và 56, ngày thứ hai, bạn mua thêm 2 cặp số là 13 và 57. Vào 18:30 ngày thứ 2, kết quả xổ số miền bắc là 1213x hoặc 1312x, bạn sẽ nhận được giải thưởng do có cặp số 12, 13 trúng giải.\nGAME vô cùng minh bạch và được lưu lại toàn bộ giao dịch và sẵn sàng công khai, hãy trao niềm tin, nhận token ngay!`,
+      data,
+    );
   }
 
   async myNumbers(data: ChannelMessage) {
@@ -108,11 +135,24 @@ export class XsService {
     await this.fumoMessage.sendSystemMessage(data, message, data);
   }
 
+  async giaiThuongLot(data: ChannelMessage) {
+    const balace = await this.prisma.lot_logs.aggregate({
+      where: {
+        is_active: true,
+      },
+      _sum: {
+        cost: true,
+      },
+    });
+    const message = `💰 Tổng số tiền dành cho người chiến thắng Lott: ${balace._sum.cost || 0} token`;
+    await this.fumoMessage.sendSystemMessage(data, message, data);
+  }
+
   async playXS(data: ChannelMessage, number: number) {
     const user = await this.userService.getUserBalance(data);
 
     if (number < 0 || number > 99 || isNaN(number)) {
-      const message = `❌ Số không hợp lệ\nSố phải lớn hơn 0 và nhỏ hơn 99`;
+      const message = `❌ Số không hợp lệ\nSố phải lớn hoặc bằng hơn 0 và nhỏ hơn 99`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
@@ -200,7 +240,133 @@ export class XsService {
       },
     });
     if (check) return;
+    await this.checkXSMB(kqxs);
+    await this.checkLot(kqxs);
+  }
 
+  async checkLot(kqxs: XsResponse) {
+    const prizeNumber = kqxs.results['ĐB'].at(0)?.substring(0, 4) ?? '';
+    const luckNumbers = [
+      Number(prizeNumber.slice(0, 2)),
+      Number(prizeNumber.slice(2, 4)),
+    ];
+    if (luckNumbers.some((num) => isNaN(num))) {
+      return;
+    }
+
+    const winnerQuery = db
+      .selectFrom('lot_logs')
+      .select([
+        'user_id',
+        'channel_id',
+        'clan_id',
+        'mode',
+        'is_public',
+        'username',
+        sql<number>`COUNT(DISTINCT number)`.as('number_count'),
+      ])
+      .where('is_active', '=', 1)
+      .where((eb) => eb('number', 'in', luckNumbers))
+      .where(
+        'created_at',
+        '>=',
+        new Date(new Date().setDate(new Date().getDate() - 10)),
+      )
+      .groupBy(['user_id'])
+      .having(sql`COUNT(DISTINCT number)`, '>=', 2)
+      .compile();
+
+    const mariaDBSql = winnerQuery.sql
+      .replace(/"([^"]+)"/g, '`$1`')
+      .replace(/\$(\d+)/g, '?');
+
+    const winner = await this.prisma.$queryRawUnsafe<
+      InferResult<typeof winnerQuery>
+    >(mariaDBSql, ...winnerQuery.parameters);
+
+    if (winner.length === 0) return;
+
+    const rewardTotal = await this.prisma.lot_logs.aggregate({
+      where: {
+        is_active: true,
+      },
+      _sum: {
+        cost: true,
+      },
+    });
+
+    if (!rewardTotal._sum.cost) return;
+    const rewardForEachWinner = Math.floor(
+      rewardTotal._sum.cost / winner.length,
+    );
+
+    const channelForNotify = await this.prisma.lot_logs.findMany({
+      distinct: ['channel_id'],
+      select: {
+        channel_id: true,
+        clan_id: true,
+        is_public: true,
+        mode: true,
+      },
+    });
+
+    const channelSentList: string[] = [];
+    for (const channel of channelForNotify) {
+      const channelId = channel.channel_id;
+      if (channelSentList.includes(channelId)) continue;
+      channelSentList.push(channelId);
+      try {
+        const message = `🎉 Kết quả LOT ngày ${kqxs.time}\n🔑 Xin chúc mừng ${winner.map((winner) => winner.username).join(', ')} đã chiến thắng giải đặc biệt với trị giá ${rewardForEachWinner} token\nCặp số may mắn bao gồm ${luckNumbers.join(' và ')}\nMột lần nữa, xin chúc mừng bạn!!`;
+        await this.fumoMessage.sendSystemMessage(
+          {
+            channel_id: channelId,
+            clan_id: channel.clan_id,
+            mode: channel.mode as any,
+            is_public: channel.is_public,
+          } as ChannelMessage,
+          message,
+          {} as ChannelMessage,
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.lot_logs.updateMany({
+          where: {
+            is_active: true,
+          },
+          data: {
+            is_active: false,
+          },
+        }),
+        tx.user_balance.updateMany({
+          where: {
+            user_id: {
+              in: winner.map((winner) => winner.user_id),
+            },
+          },
+          data: {
+            balance: {
+              increment: rewardForEachWinner,
+            },
+          },
+        }),
+        tx.transaction_send_logs.createMany({
+          data: winner.map((winner) => ({
+            user_id: 'fumo',
+            amount: rewardForEachWinner,
+            to_user_id: winner.user_id,
+            note: `lot_${kqxs.time}`,
+          })),
+        }),
+      ]);
+    });
+  }
+
+  async checkXSMB(kqxs: XsResponse) {
     //! Get full kq
     const luckyNum = kqxs.results['ĐB'].at(0)?.slice(-2);
 
@@ -309,6 +475,107 @@ export class XsService {
             is_active: false,
           },
         }),
+      ]);
+    });
+  }
+
+  async playLot(data: ChannelMessage, number: number[]) {
+    // only play between 00:00 and 18:00
+
+    const time = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+    const hours = Number(String(time).substring(0, 2));
+    if (hours < 0 || hours >= 18) {
+      const message = `❌ Chỉ được chơi xổ số từ 00:00 đến 18:00 hàng ngày.`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
+    const cost = number.length * this.lotCost;
+    const user = await this.userService.getUserBalance(data);
+    if (!user || user?.balance < cost) {
+      const message = `❌ Bạn không có đủ ${cost} token để mua ${number.length} con số`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
+    //too many number
+    if (number.length > 4) {
+      const message = `❌ Bạn chỉ được mua tối đa 4 con số`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
+    //bought too many number
+    const boughtNumber = await this.prisma.lot_logs.findMany({
+      where: {
+        user_id: data.sender_id,
+        is_active: true,
+        created_at: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
+      },
+    });
+    if (boughtNumber.length + number.length > 4) {
+      const message = `❌ Bạn mua quá nhiều con số hôm nay\nChỉ được mua tối đa 4 con số mỗi ngày.\nHãy chờ ngày mai nhé!`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
+    //check exist number
+    const existNumber = await this.prisma.lot_logs.findMany({
+      where: {
+        number: {
+          in: number,
+        },
+        is_active: true,
+        created_at: {
+          gte: new Date(new Date().setDate(new Date().getDate() - 10)),
+        },
+      },
+    });
+
+    if (existNumber.length > 0) {
+      const message = `❌ Số ${existNumber.map((number) => number.number).join(', ')} bạn đã mua trước đó!`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.lot_logs.createMany({
+          data: number.map((number) => ({
+            number,
+            user_id: data.sender_id,
+            cost: this.lotCost,
+            channel_id: data.channel_id,
+            clan_id: data.clan_id,
+            is_public: data.is_public,
+            username: data.username,
+            mode: String(data.mode || EMessageMode.CHANNEL_MESSAGE),
+            is_active: true,
+          })),
+        }),
+        tx.transaction_send_logs.createMany({
+          data: number.map((number) => ({
+            user_id: data.sender_id,
+            amount: this.lotCost,
+            to_user_id: 'fumo',
+            note: `lot_${number}`,
+          })),
+        }),
+        tx.user_balance.update({
+          where: { user_id: data.sender_id },
+          data: {
+            balance: { decrement: cost },
+          },
+        }),
+        this.fumoMessage.sendSystemMessage(
+          data,
+          `🎉 Bạn đã mua ${number.length} con số (${number.join(', ')}) với giá ${cost} token! \n🎉 Giải sẽ quay vào 18:30 mỗi ngày và thông báo khi có người may mắn trúng giải!\nLưu ý rằng: Mỗi con số chỉ có hiệu lực trong 10 ngày kể từ thời điểm bạn mua, sau 10 ngày hoặc khi có người chiến thắng sẽ không còn hiệu lực.`,
+          data,
+        ),
       ]);
     });
   }
