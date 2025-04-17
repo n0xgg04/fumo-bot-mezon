@@ -30,6 +30,7 @@ export class XsService {
         created_at: {
           gte: new Date(new Date().setDate(new Date().getDate() - 10)),
         },
+        user_id: data.sender_id,
       },
       orderBy: {
         created_at: 'desc',
@@ -533,6 +534,7 @@ export class XsService {
         created_at: {
           gte: new Date(new Date().setDate(new Date().getDate() - 10)),
         },
+        user_id: data.sender_id,
       },
     });
 

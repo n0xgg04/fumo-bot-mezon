@@ -16,7 +16,10 @@ export class XsCommand {
     if (data.content.t?.startsWith('*lot')) {
       const numbers = data.content.t.split(' ').slice(1);
       const numberArray = numbers.map((number) => parseInt(number));
-      if (numberArray.every((number) => !isNaN(number))) {
+      if (
+        numberArray.every((number) => !isNaN(number)) &&
+        numberArray.length != 0
+      ) {
         await this.xsService.playLot(data, numberArray);
       } else {
         const message = `❌ Sai cú pháp, vui lòng sử dụng lại lệnh`;
