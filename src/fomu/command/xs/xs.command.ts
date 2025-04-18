@@ -70,6 +70,10 @@ export class XsCommand {
       await this.xsService.checkTime(data);
     } else if (data?.content.t === '*mynumbers') {
       await this.xsService.myNumbers(data);
+    } else if (data?.content.t === '*xinso') {
+      await this.xsService.xinSo(data);
+    } else if (data?.content.t?.startsWith('*uoc')) {
+      await this.xsService.uoc(data);
     }
   }
 }

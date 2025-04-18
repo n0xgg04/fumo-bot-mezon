@@ -10,6 +10,7 @@ import { UserService } from '../../user-service';
 import { uniqBy } from 'lodash';
 import { db } from 'src/db';
 import { InferResult, sql } from 'kysely';
+import { random } from 'lodash';
 
 @Injectable()
 export class XsService {
@@ -22,6 +23,18 @@ export class XsService {
 
   private xsCost = 5000;
   private lotCost = 5000;
+
+  async uoc(data: ChannelMessage) {
+    const u = data.content.t?.split(' ').slice(1);
+    const message = `${data.username} đã ước ${u?.join(' ')}\n🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏`;
+    await this.fumoMessage.sendSystemMessage(data, message, data);
+  }
+
+  async xinSo(data: ChannelMessage) {
+    const randomNumber = random(0, 99);
+    const message = `🍀 Số của bạn là: ${randomNumber}\nChúc may mắn!`;
+    await this.fumoMessage.sendSystemMessage(data, message, data);
+  }
 
   async getLotNumbers(data: ChannelMessage) {
     const numbers = await this.prisma.lot_logs.findMany({
