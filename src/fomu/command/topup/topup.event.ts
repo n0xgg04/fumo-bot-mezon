@@ -24,9 +24,6 @@ export class TopupEvent {
     if (data.content.t === '*kttk') {
       await this.topupService.checkBalance(data);
     }
-    if (data.content.t === '*fumo') {
-      await this.topupService.ping(data);
-    }
   }
 
   @OnEvent(Events.ChannelMessage)

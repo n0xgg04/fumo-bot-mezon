@@ -20,7 +20,7 @@ export class TomTatCommand {
 
   @OnEvent(Events.ChannelMessage)
   async handleChannelMessageHelp(message: ChannelMessage) {
-    if (message.content.t?.startsWith('*fhelp')) {
+    if (message.content.t?.startsWith('*fumo')) {
       await this.tomTatService.handleHelp(message);
     }
   }
