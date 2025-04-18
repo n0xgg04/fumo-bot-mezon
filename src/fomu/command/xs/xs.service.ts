@@ -177,6 +177,20 @@ export class XsService {
       return;
     }
 
+    const checkExist = await this.prisma.xs_logs.findFirst({
+      where: {
+        user_id: data.sender_id,
+        number,
+        is_active: true,
+      },
+    });
+
+    if (checkExist) {
+      const message = `❌ Bạn đã chơi số ${number} trước đó!`;
+      await this.fumoMessage.sendSystemMessage(data, message, data);
+      return;
+    }
+
     const time = new Date().toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
     });
