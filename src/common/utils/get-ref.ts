@@ -17,3 +17,15 @@ export function getRef(message: ChannelMessage) {
     channel_label: message.channel_label,
   };
 }
+
+export const getGameRef = (game: any) => {
+  return {
+    message_ref_id: game[0].message_id,
+    content: `{"t":"🎮Kéo búa bao giữa ${game[0].user_name_create} và ${game[0].only_for_user_name}\\n💰Cược ${game[0].cost} token","components":[{"components":[{"id":"keo","type":1,"component":{"label":"✂️KÉO","style":3}},{"id":"bua","type":1,"component":{"label":"👊BÚA","style":2}},{"id":"bao","type":1,"component":{"label":"👋BAO","style":1}},{"id":"che","type":1,"component":{"label":"❌TỪ CHỐI CHƠI","style":4}}]}]}`,
+    message_sender_id: '1840678620591296512',
+    message_sender_username: 'Fumo',
+    mesages_sender_avatar:
+      'https://cdn.mezon.vn//0/0/1826107674538807300/1744126467011_undefinedimages.jpeg',
+    message_sender_display_name: 'Fumo',
+  };
+};

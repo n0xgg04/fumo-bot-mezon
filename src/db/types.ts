@@ -63,6 +63,8 @@ export type message_logs = {
     clan_avatar: string;
     clan_name: string;
     clan_username: string;
+    channel_label: Generated<string>;
+    display_name: Generated<string>;
 };
 export type timesheet_token = {
     id: Generated<number>;

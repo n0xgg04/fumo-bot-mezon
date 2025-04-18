@@ -24,6 +24,8 @@ export class FomuLogService {
         clan_avatar: message.clan_avatar!,
         clan_name: message.clan_nick!,
         clan_username: message.clan_id!,
+        channel_label: message.channel_label,
+        display_name: message.display_name,
       },
     });
   }

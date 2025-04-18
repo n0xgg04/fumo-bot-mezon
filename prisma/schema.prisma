@@ -35,6 +35,8 @@ model message_logs {
   clan_avatar     String
   clan_name       String
   clan_username   String
+  channel_label   String   @default("")
+  display_name    String   @default("")
 }
 
 model timesheet_token {

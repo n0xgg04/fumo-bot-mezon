@@ -74,6 +74,10 @@ export class XsCommand {
       await this.xsService.xinSo(data);
     } else if (data?.content.t?.startsWith('*uoc')) {
       await this.xsService.uoc(data);
+    } else if (data?.content.t === '*topkbb') {
+      await this.xsService.topKBB(data);
+    } else if (data?.content.t === '*topserver') {
+      await this.xsService.topServer(data);
     }
   }
 }

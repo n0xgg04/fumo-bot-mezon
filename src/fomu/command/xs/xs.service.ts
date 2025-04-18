@@ -7,10 +7,16 @@ import { FumoMessageService } from 'src/mezon/fumo-message.module';
 import { MezonService } from 'src/mezon/mezon.service';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { UserService } from '../../user-service';
-import { uniqBy } from 'lodash';
-import { db } from 'src/db';
+import { delay, uniqBy } from 'lodash';
 import { InferResult, sql } from 'kysely';
 import { random } from 'lodash';
+import { formatToken } from 'src/common/utils/formater';
+
+interface TopPlayer {
+  user_id: string;
+  username: string;
+  win_count: number;
+}
 
 @Injectable()
 export class XsService {
@@ -23,6 +29,177 @@ export class XsService {
 
   private xsCost = 5000;
   private lotCost = 5000;
+
+  async topServer(data: ChannelMessage) {
+    const placeholder = await this.fumoMessage.sendSystemMessage(
+      data,
+      'Đang lấy danh sách top 10 nạp nhiều nhất server...',
+      data,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const topPlayers = await this.prisma.transaction_logs.groupBy({
+      by: ['user_id'],
+      where: {
+        type: 'DEPOSIT',
+        user_id: {
+          not: '1840678620591296512',
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+        _sum: {
+          amount: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    if (topPlayers.length === 0) {
+      await this.mezon.updateMessage(
+        data.clan_id!,
+        data.channel_id,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
+        data.is_public!,
+        placeholder!.message_id,
+        {
+          t: '🏆 TOP 10 NGƯỜI NẠP NHIỀU NHẤT SERVER\nChưa có dữ liệu',
+          mk: [
+            {
+              type: 'pre' as EMarkdownType,
+              e: 50,
+              s: 0,
+            },
+          ],
+        },
+      );
+      return;
+    }
+
+    const userIds = topPlayers.map((player) => player.user_id);
+    const users = await this.prisma.user_balance.findMany({
+      where: {
+        user_id: {
+          in: userIds,
+        },
+      },
+      select: {
+        user_id: true,
+        username: true,
+      },
+    });
+
+    const userMap = new Map(users.map((user) => [user.user_id, user.username]));
+    const message =
+      '🏆 TOP 10 NGƯỜI NẠP NHIỀU NHẤT SERVER\n' +
+      topPlayers
+        .map((player, index) => {
+          const username = userMap.get(player.user_id) || 'Unknown User';
+          return `${index + 1}. ${username}: ${formatToken(player._sum.amount)}`;
+        })
+        .join('\n');
+
+    await this.mezon.updateMessage(
+      data.clan_id!,
+      data.channel_id,
+      data.mode || EMessageMode.CHANNEL_MESSAGE,
+      data.is_public!,
+      placeholder!.message_id,
+      {
+        t: message,
+        mk: [{ type: 'pre' as EMarkdownType, e: message.length, s: 0 }],
+      },
+    );
+  }
+
+  async topKBB(data: ChannelMessage) {
+    const placeholder = await this.fumoMessage.sendSystemMessage(
+      data,
+      'Đang lấy danh sách top 10 người thắng kéo búa bao...',
+      data,
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const topPlayers = await this.prisma.transaction_send_logs.groupBy({
+      by: ['user_id'],
+      where: {
+        note: 'win_kbb',
+      },
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    if (topPlayers.length === 0) {
+      await this.mezon.updateMessage(
+        data.clan_id!,
+        data.channel_id,
+        data.mode || EMessageMode.CHANNEL_MESSAGE,
+        data.is_public!,
+        placeholder!.message_id,
+        {
+          t: '🏆 TOP 10 NGƯỜI THẮNG KÉO BÚA BAO\nChưa có dữ liệu',
+          mk: [
+            {
+              type: 'pre' as EMarkdownType,
+              e: 50,
+              s: 0,
+            },
+          ],
+        },
+      );
+      return;
+    }
+
+    const userIds = topPlayers.map((player) => player.user_id);
+    const users = await this.prisma.user_balance.findMany({
+      where: {
+        user_id: {
+          in: userIds,
+        },
+      },
+      select: {
+        user_id: true,
+        username: true,
+      },
+    });
+
+    const userMap = new Map(users.map((user) => [user.user_id, user.username]));
+    const message =
+      '🏆 TOP 10 NGƯỜI THẮNG KÉO BÚA BAO\n' +
+      topPlayers
+        .map((player, index) => {
+          const username = userMap.get(player.user_id) || 'Unknown User';
+          return `${index + 1}. ${username}: ${player._count.id} lần thắng`;
+        })
+        .join('\n');
+
+    await this.mezon.updateMessage(
+      data.clan_id!,
+      data.channel_id,
+      data.mode || EMessageMode.CHANNEL_MESSAGE,
+      data.is_public!,
+      placeholder!.message_id,
+      {
+        t: `${message}`,
+        mk: [
+          {
+            type: 'pre' as EMarkdownType,
+            e: message.length,
+            s: 0,
+          },
+        ],
+      },
+    );
+  }
 
   async uoc(data: ChannelMessage) {
     const u = data.content.t?.split(' ').slice(1);
@@ -282,37 +459,62 @@ export class XsService {
       return;
     }
 
-    const winnerQuery = db
-      .selectFrom('lot_logs')
-      .select([
-        'user_id',
-        'channel_id',
-        'clan_id',
-        'mode',
-        'is_public',
-        'username',
-        sql<number>`COUNT(DISTINCT number)`.as('number_count'),
-      ])
-      .where('is_active', '=', 1)
-      .where((eb) => eb('number', 'in', luckNumbers))
-      .where(
-        'created_at',
-        '>=',
-        new Date(new Date().setDate(new Date().getDate() - 10)),
-      )
-      .groupBy(['user_id'])
-      .having(sql`COUNT(DISTINCT number)`, '>=', 2)
-      .compile();
+    // Find users who have at least 2 of the lucky numbers
+    const tenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 10));
 
-    const mariaDBSql = winnerQuery.sql
-      .replace(/"([^"]+)"/g, '`$1`')
-      .replace(/\$(\d+)/g, '?');
+    // Get all active lot logs for the lucky numbers
+    const lotLogs = await this.prisma.lot_logs.findMany({
+      where: {
+        is_active: true,
+        number: {
+          in: luckNumbers,
+        },
+        created_at: {
+          gte: tenDaysAgo,
+        },
+      },
+      select: {
+        user_id: true,
+        channel_id: true,
+        clan_id: true,
+        mode: true,
+        is_public: true,
+        username: true,
+        number: true,
+      },
+    });
 
-    const winner = await this.prisma.$queryRawUnsafe<
-      InferResult<typeof winnerQuery>
-    >(mariaDBSql, ...winnerQuery.parameters);
+    // Group by user_id and count distinct numbers
+    const userNumberCounts = new Map();
+    lotLogs.forEach((log) => {
+      if (!userNumberCounts.has(log.user_id)) {
+        userNumberCounts.set(log.user_id, {
+          user_id: log.user_id,
+          channel_id: log.channel_id,
+          clan_id: log.clan_id,
+          mode: log.mode,
+          is_public: log.is_public,
+          username: log.username,
+          numbers: new Set(),
+        });
+      }
+      userNumberCounts.get(log.user_id).numbers.add(log.number);
+    });
 
-    if (winner.length === 0) return;
+    // Filter users with at least 2 distinct numbers
+    const winners = Array.from(userNumberCounts.values())
+      .filter((user) => user.numbers.size >= 2)
+      .map((user) => ({
+        user_id: user.user_id,
+        channel_id: user.channel_id,
+        clan_id: user.clan_id,
+        mode: user.mode,
+        is_public: user.is_public,
+        username: user.username,
+        number_count: user.numbers.size,
+      }));
+
+    if (winners.length === 0) return;
 
     const rewardTotal = await this.prisma.lot_logs.aggregate({
       where: {
@@ -325,7 +527,7 @@ export class XsService {
 
     if (!rewardTotal._sum.cost) return;
     const rewardForEachWinner = Math.floor(
-      rewardTotal._sum.cost / winner.length,
+      rewardTotal._sum.cost / winners.length,
     );
 
     const channelForNotify = await this.prisma.lot_logs.findMany({
@@ -344,7 +546,7 @@ export class XsService {
       if (channelSentList.includes(channelId)) continue;
       channelSentList.push(channelId);
       try {
-        const message = `🎉 Kết quả LOT ngày ${kqxs.time}\n🔑 Xin chúc mừng ${winner.map((winner) => winner.username).join(', ')} đã chiến thắng giải đặc biệt với trị giá ${rewardForEachWinner} token\nCặp số may mắn bao gồm ${luckNumbers.join(' và ')}\nMột lần nữa, xin chúc mừng bạn!!`;
+        const message = `🎉 Kết quả LOT ngày ${kqxs.time}\n🔑 Xin chúc mừng ${winners.map((winner) => winner.username).join(', ')} đã chiến thắng giải đặc biệt với trị giá ${rewardForEachWinner} token\nCặp số may mắn bao gồm ${luckNumbers.join(' và ')}\nMột lần nữa, xin chúc mừng bạn!!`;
         await this.fumoMessage.sendSystemMessage(
           {
             channel_id: channelId,
@@ -373,7 +575,7 @@ export class XsService {
         tx.user_balance.updateMany({
           where: {
             user_id: {
-              in: winner.map((winner) => winner.user_id),
+              in: winners.map((winner) => winner.user_id),
             },
           },
           data: {
@@ -383,7 +585,7 @@ export class XsService {
           },
         }),
         tx.transaction_send_logs.createMany({
-          data: winner.map((winner) => ({
+          data: winners.map((winner) => ({
             user_id: 'fumo',
             amount: rewardForEachWinner,
             to_user_id: winner.user_id,
@@ -412,7 +614,15 @@ export class XsService {
       },
     });
 
-    if (kq.length === 0) return;
+    if (kq.length === 0) {
+      await this.prisma.kqxs.create({
+        data: {
+          indetifier: kqxs.time,
+          result: luckyNumber.toString(),
+        },
+      });
+      return;
+    }
 
     const entriesWithDistance = kq.map((entry) => ({
       ...entry,
