@@ -9,6 +9,7 @@ import { DailyModule } from './command/daily/daily.module';
 import { TopupModule } from './command/topup/topup.module';
 import { XsModule } from './command/xs/xs.module';
 import { UserService } from './user-service';
+import { WorksModule } from './command/works/works.module';
 @Module({
   imports: [
     MezonModule,
@@ -18,6 +19,7 @@ import { UserService } from './user-service';
     DailyModule,
     TopupModule,
     XsModule,
+    WorksModule,
   ],
   providers: [FomuService, FomuLogService, UserService],
   exports: [FomuService],

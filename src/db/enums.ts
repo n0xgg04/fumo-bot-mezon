@@ -3,6 +3,12 @@ export const ETransactionType = {
     WITHDRAW: "WITHDRAW"
 } as const;
 export type ETransactionType = (typeof ETransactionType)[keyof typeof ETransactionType];
+export const EMessageRole = {
+    system: "system",
+    user: "user",
+    assistant: "assistant"
+} as const;
+export type EMessageRole = (typeof EMessageRole)[keyof typeof EMessageRole];
 export const ETransactionSendStatus = {
     PLAY_KBB: "PLAY_KBB",
     PLAY_XS: "PLAY_XS"

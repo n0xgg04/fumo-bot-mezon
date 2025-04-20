@@ -92,6 +92,64 @@ model transaction_send_logs {
   @@index([user_id])
 }
 
+model fumo_assistant {
+  id         Int     @id @default(autoincrement())
+  channel_id String
+  clan_id    String
+  is_active  Boolean @default(false)
+  ai_model   String  @default("deepseek-chat")
+  api_key    String  @default("")
+
+  max_tokens BigInt @default(300000)
+
+  created_at                  DateTime                      @default(now())
+  updated_at                  DateTime                      @updatedAt
+  fumo_tokens_took            fumo_tokens_took?
+  system_prompt               String                        @default("") @db.LongText
+  fumo_assistant_message_logs fumo_assistant_message_logs[]
+
+  @@unique([channel_id, clan_id])
+  @@index([channel_id, clan_id])
+}
+
+model fumo_assistant_message_logs {
+  id                Int               @id @default(autoincrement())
+  fumo_assistant_id Int
+  fumo_assistant    fumo_assistant    @relation(fields: [fumo_assistant_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role              EMessageRole      @default(user)
+  mezon_message_id  String            @unique @default("")
+  message           String            @db.LongText
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  channel_id        String            @default("")
+  clan_id           String            @default("")
+  user_id           String            @default("")
+  fumo_tokens_took  fumo_tokens_took?
+
+  @@index([fumo_assistant_id])
+  @@index([mezon_message_id])
+}
+
+enum EMessageRole {
+  system
+  user
+  assistant
+}
+
+model fumo_tokens_took {
+  id                             Int                         @id @default(autoincrement())
+  fumo_assistant_id              Int
+  fumo_assistant                 fumo_assistant              @relation(fields: [fumo_assistant_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tokens_took                    BigInt                      @default(0)
+  created_at                     DateTime                    @default(now())
+  updated_at                     DateTime                    @updatedAt
+  fumo_assistant_message_logs_id Int
+  fumo_assistant_message_logs    fumo_assistant_message_logs @relation(fields: [fumo_assistant_message_logs_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([fumo_assistant_id])
+  @@unique([fumo_assistant_message_logs_id])
+}
+
 enum ETransactionSendStatus {
   PLAY_KBB
   PLAY_XS
