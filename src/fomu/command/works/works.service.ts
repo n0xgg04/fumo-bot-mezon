@@ -126,7 +126,7 @@ export class WorksService {
     await new Promise((res) => setTimeout(res, 1000));
 
     for await (const chunk of stream!) {
-      content += chunk.content as string;
+      content += chunk as string;
       const debouchFn = debounce(async () => {
         await this.mezon.updateMessage(
           data.clan_id!,

@@ -108,46 +108,36 @@ export class WorksAi {
     ]);
 
     const chain = RunnableSequence.from([
-      {
-        input: async (input: string) => {
-          const messageLogs =
-            await this.prisma.fumo_assistant_message_logs.findMany({
-              where: {
-                fumo_assistant_id: agent.id,
-                user_id: data.sender_id,
-                clan_id: data.clan_id,
-                channel_id: data.channel_id,
-              },
-              orderBy: {
-                created_at: 'asc',
-              },
-              take: 100,
-            });
+      async (input: string) => {
+        const messageLogs =
+          await this.prisma.fumo_assistant_message_logs.findMany({
+            where: {
+              fumo_assistant_id: agent.id,
+              user_id: data.sender_id,
+              clan_id: data.clan_id,
+              channel_id: data.channel_id,
+            },
+            orderBy: {
+              created_at: 'asc',
+            },
+            take: 100,
+          });
 
-          const messages = messageLogs
-            .filter((log) => log.role !== EMessageRole.system)
-            .map((log) => {
-              if (log.role === EMessageRole.user) {
-                return new HumanMessage(log.message);
-              } else if (log.role === EMessageRole.assistant) {
-                return new AIMessage(log.message);
-              }
-            })
-            .filter(Boolean);
+        const messages = messageLogs
+          .filter((log) => log.role !== EMessageRole.system)
+          .map((log) => {
+            if (log.role === EMessageRole.user) {
+              return new HumanMessage(log.message);
+            } else if (log.role === EMessageRole.assistant) {
+              return new AIMessage(log.message);
+            }
+          })
+          .filter(Boolean);
 
-          return {
-            input,
-            chat_history: messages || [],
-          };
-        },
-      },
-      {
-        input: (input: any) => {
-          return {
-            input: input.input,
-            chat_history: input.chat_history || [],
-          };
-        },
+        return {
+          input,
+          chat_history: messages || [],
+        };
       },
       prompt,
       chatModel,
