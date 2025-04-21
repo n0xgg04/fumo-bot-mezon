@@ -71,7 +71,6 @@ export class WorksAi {
     });
 
     if (!agent) {
-      this.logger.log('Creating new agent');
       agent = await this.prisma.fumo_assistant.create({
         data: {
           channel_id: data.channel_id,
@@ -93,8 +92,6 @@ export class WorksAi {
         },
       });
     }
-
-    this.logger.warn('Use existing agent: ' + agent.ai_model);
 
     const chatModel = await this.getAgentByModelName(
       String(agent.ai_model),

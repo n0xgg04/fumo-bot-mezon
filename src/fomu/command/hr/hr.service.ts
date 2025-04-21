@@ -47,10 +47,8 @@ export class HrService {
   async handleScanCV(cvPdfLink: string, fileName: string) {
     try {
       const pdfPath = await this.downloadFile(cvPdfLink);
-      this.logger.debug(`PDF downloaded to: ${pdfPath}`);
 
       const fileStats = fs.statSync(pdfPath);
-      this.logger.debug(`PDF file size: ${fileStats.size} bytes`);
 
       let docs: Document[] = [];
 
@@ -62,15 +60,11 @@ export class HrService {
         });
 
         const pdfDocs = await loader.load();
-        this.logger.debug(`Loaded ${pdfDocs.length} pages from PDF directly`);
 
         if (pdfDocs.length > 0) {
           const totalContentLength = pdfDocs.reduce(
             (sum, doc) => sum + doc.pageContent.length,
             0,
-          );
-          this.logger.debug(
-            `Total content length: ${totalContentLength} characters`,
           );
 
           if (totalContentLength > 100) {
@@ -107,9 +101,6 @@ export class HrService {
       });
 
       const validFileName = fileName.replace(/[^a-zA-Z0-9_]/g, '_');
-      this.logger.debug(
-        `Creating vector store with collection name: ${validFileName}`,
-      );
 
       const vectorStore = await QdrantVectorStore.fromDocuments(
         splitDocs,
@@ -119,8 +110,6 @@ export class HrService {
           collectionName: validFileName,
         },
       );
-
-      this.logger.debug('Vector store created successfully');
 
       const collectionInfo =
         await this.qdrantClient.getCollection(validFileName);
@@ -191,7 +180,7 @@ Always respond in the same language as the question.
 
 Do not use markdown.
 
-SAMPLE OUTPUT (tiếng Việt, không dùng markdown): THÔNG TIN:
+SAMPLE OUTPUT (tiếng Việt, không dùng markdown): THÔNG TÍN:
 
 Ứng viên: Nguyễn Văn A
 
@@ -235,14 +224,8 @@ Context: {context}`;
       const chain = RunnableSequence.from([
         async (input: string) => {
           const relevantDocs = await vectorStore.similaritySearch(input, 4);
-          this.logger.debug(
-            `Found ${relevantDocs.length} relevant documents for query: ${input}`,
-          );
-          relevantDocs.forEach((doc, i) => {
-            this.logger.debug(
-              `Relevant doc ${i + 1}: ${doc.pageContent.substring(0, 200)}...`,
-            );
-          });
+
+          relevantDocs.forEach((doc, i) => {});
           return {
             input,
             context: relevantDocs.map((doc) => doc.pageContent).join('\n\n'),
@@ -257,7 +240,6 @@ Context: {context}`;
       this.chains.set(fileName, chain);
 
       fs.unlinkSync(pdfPath);
-      this.logger.debug('Temporary PDF file deleted');
 
       return {
         success: true,
@@ -265,7 +247,6 @@ Context: {context}`;
         fileName: fileName,
       };
     } catch (error) {
-      this.logger.error('Error processing CV:', error);
       return {
         success: false,
         message: `Lỗi xử lý CV: ${error.message}`,
