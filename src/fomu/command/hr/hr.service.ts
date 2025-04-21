@@ -82,83 +82,6 @@ export class HrService {
         this.logger.warn('Failed to read PDF directly:', error);
       }
 
-      // If PDF reading failed or content is too short, convert to images and use OpenAI Vision
-      if (docs.length === 0) {
-        this.logger.debug('Converting PDF to images and using OpenAI Vision');
-        const pdfBytes = fs.readFileSync(pdfPath);
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const pageCount = pdfDoc.getPageCount();
-
-        const tempDir = path.join(process.cwd(), 'temp');
-        if (!fs.existsSync(tempDir)) {
-          fs.mkdirSync(tempDir);
-        }
-
-        const allText: string[] = [];
-
-        for (let i = 0; i < pageCount; i++) {
-          const page = pdfDoc.getPage(i);
-          const pngBytes = await page.toPng();
-
-          // Convert PNG to JPEG with high quality
-          const jpegBuffer = await sharp(pngBytes)
-            .jpeg({ quality: 100 })
-            .toBuffer();
-
-          const base64Image = jpegBuffer.toString('base64');
-
-          try {
-            const response = await this.openai.chat.completions.create({
-              model: 'gpt-4o',
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    {
-                      type: 'text',
-                      text: 'Please read this page of a CV and extract all the text content. Include all information about education, work experience, skills, and projects. Format the output as plain text.',
-                    },
-                    {
-                      type: 'image_url',
-                      image_url: {
-                        url: `data:image/jpeg;base64,${base64Image}`,
-                      },
-                    },
-                  ],
-                },
-              ],
-              max_tokens: 4096,
-            });
-
-            const extractedText = response.choices[0].message.content;
-            if (extractedText) {
-              allText.push(extractedText);
-              this.logger.debug(
-                `Extracted text from page ${i + 1}: ${extractedText.substring(0, 200)}...`,
-              );
-            }
-
-            // Add delay to avoid rate limit
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          } catch (error) {
-            this.logger.warn(`Failed to process page ${i + 1}:`, error);
-          }
-        }
-
-        if (allText.length > 0) {
-          docs = [
-            new Document({
-              pageContent: allText.join('\n\n'),
-              metadata: { source: 'openai-vision' },
-            }),
-          ];
-        }
-      }
-
-      if (docs.length === 0) {
-        throw new Error('No content could be extracted from the PDF');
-      }
-
       const textSplitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 200,
@@ -201,9 +124,6 @@ export class HrService {
 
       const collectionInfo =
         await this.qdrantClient.getCollection(validFileName);
-      this.logger.debug(
-        `Collection info: ${JSON.stringify(collectionInfo, null, 2)}`,
-      );
 
       this.vectorStores.set(fileName, vectorStore);
 
