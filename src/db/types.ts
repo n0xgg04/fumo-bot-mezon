@@ -4,8 +4,40 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   : ColumnType<T, T | undefined, T>;
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-import type { ETransactionType, ETransactionSendStatus, KeoBuaBaoEnum, EKeobuabaoGameStatus } from "./enums";
+import type { ETransactionType, EMessageRole, ETransactionSendStatus, KeoBuaBaoEnum, EKeobuabaoGameStatus } from "./enums";
 
+export type fumo_assistant = {
+    id: Generated<number>;
+    channel_id: string;
+    clan_id: string;
+    is_active: Generated<number>;
+    ai_model: Generated<string>;
+    api_key: Generated<string>;
+    max_tokens: Generated<number>;
+    created_at: Generated<Timestamp>;
+    updated_at: Timestamp;
+    system_prompt: Generated<string>;
+};
+export type fumo_assistant_message_logs = {
+    id: Generated<number>;
+    fumo_assistant_id: number;
+    role: Generated<EMessageRole>;
+    mezon_message_id: Generated<string>;
+    message: string;
+    created_at: Generated<Timestamp>;
+    updated_at: Timestamp;
+    channel_id: Generated<string>;
+    clan_id: Generated<string>;
+    user_id: Generated<string>;
+};
+export type fumo_tokens_took = {
+    id: Generated<number>;
+    fumo_assistant_id: number;
+    tokens_took: Generated<number>;
+    created_at: Generated<Timestamp>;
+    updated_at: Timestamp;
+    fumo_assistant_message_logs_id: number;
+};
 export type keobuabao_game = {
     id: Generated<number>;
     user_id_create: string;
@@ -115,6 +147,9 @@ export type xs_logs = {
     mode: Generated<string>;
 };
 export type DB = {
+    fumo_assistant: fumo_assistant;
+    fumo_assistant_message_logs: fumo_assistant_message_logs;
+    fumo_tokens_took: fumo_tokens_took;
     keobuabao_game: keobuabao_game;
     keobuabao_game_logs: keobuabao_game_logs;
     kqxs: kqxs;

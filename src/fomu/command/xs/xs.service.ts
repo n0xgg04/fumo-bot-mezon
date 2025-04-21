@@ -11,6 +11,7 @@ import { delay, uniqBy } from 'lodash';
 import { InferResult, sql } from 'kysely';
 import { random } from 'lodash';
 import { formatToken } from 'src/common/utils/formater';
+import { db } from 'src/db';
 
 interface TopPlayer {
   user_id: string;
@@ -392,40 +393,43 @@ export class XsService {
       return;
     }
 
-    await Promise.all([
-      this.prisma.xs_logs.create({
-        data: {
-          user_id: data.sender_id,
-          cost: this.xsCost,
-          number,
-          channel_id: data.channel_id,
-          clan_id: data.clan_id,
-          is_public: data.is_public,
-          username: data.username,
-        },
-      }),
-      this.prisma.transaction_send_logs.create({
-        data: {
-          user_id: data.sender_id,
-          amount: this.xsCost,
-          to_user_id: 'fumo',
-          note: `xs_${time}`,
-        },
-      }),
-      this.prisma.user_balance.update({
-        where: { user_id: data.sender_id },
-        data: {
-          balance: {
-            decrement: this.xsCost,
+    await this.prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.xs_logs.create({
+          data: {
+            user_id: data.sender_id,
+            cost: this.xsCost,
+            number,
+            channel_id: data.channel_id,
+            clan_id: data.clan_id,
+            is_public: data.is_public,
+            username: data.username,
+            mode: String(data.mode || EMessageMode.CHANNEL_MESSAGE),
           },
-        },
-      }),
-      await this.fumoMessage.sendSystemMessage(
-        data,
-        `🎰 Đã cược số ${number} với giá ${this.xsCost} token\nKết quả sẽ được công bố khi có kết quả.`,
-        data,
-      ),
-    ]);
+        }),
+        this.prisma.transaction_send_logs.create({
+          data: {
+            user_id: data.sender_id,
+            amount: this.xsCost,
+            to_user_id: 'fumo',
+            note: `xs_${time}`,
+          },
+        }),
+        this.prisma.user_balance.update({
+          where: { user_id: data.sender_id },
+          data: {
+            balance: {
+              decrement: this.xsCost,
+            },
+          },
+        }),
+        await this.fumoMessage.sendSystemMessage(
+          data,
+          `🎰 Đã cược số ${number} với giá ${this.xsCost} token\nKết quả sẽ được công bố khi có kết quả.`,
+          data,
+        ),
+      ]);
+    });
   }
 
   async checkTime(data: ChannelMessage) {
@@ -653,30 +657,50 @@ export class XsService {
     const rewardTotal = kq.reduce((acc, winner) => acc + winner.cost, 0);
     const rewardForEachWinner = Math.floor(rewardTotal / winners.length);
 
-    const uniqueChannelById = uniqBy(kq, 'channel_id');
+    const uniqueChannelById = await this.prisma.xs_logs.findMany({
+      where: {
+        is_active: true,
+      },
+      distinct: ['channel_id', 'mode'],
+      select: {
+        channel_id: true,
+        clan_id: true,
+        mode: true,
+        is_public: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
 
     const message = `🎉 Kết quả xổ số ngày ${kqxs.time}\n🔑 Con số may mắn: ${luckyNumber}\n🔑 Con số trúng giải: ${winners?.[0].number}\n💰 Tổng thưởng: ${rewardTotal} token\n💰 Thưởng cho mỗi người: ${rewardForEachWinner} token\n🎉 Xin chúc mừng ${winners.map((winner) => winner.username).join(', ')} đã chiến thắng.`;
     const channelSentList: string[] = [];
     for (const channel of uniqueChannelById) {
-      const channelId = channel.channel_id;
       try {
-        if (channelSentList.includes(channelId)) continue;
-        channelSentList.push(channelId);
-        await this.fumoMessage.sendSystemMessage(
-          {
-            channel_id: channelId,
-            clan_id: channel.clan_id,
-            mode: EMessageMode.CHANNEL_MESSAGE,
-            is_public: channel.is_public,
-          } as ChannelMessage,
-          message,
-          {} as ChannelMessage,
-        );
+        if (channelSentList.includes(channel.channel_id + '|' + channel.mode))
+          continue;
+        channelSentList.push(channel.channel_id + '|' + channel.mode);
+        await this.mezon.sendMessageToChannel({
+          clan_id: channel.clan_id,
+          channel_id: channel.channel_id,
+          is_public: channel.is_public || false,
+          mode: channel.mode as any,
+          msg: {
+            t: message,
+            mk: [
+              {
+                type: 'pre' as EMarkdownType,
+                e: message.length,
+                s: 0,
+              },
+            ],
+          },
+        });
       } catch (error) {
         console.log(error);
       }
     }
-    // console.log(uniqueChannelById);
+
     await this.prisma.$transaction(async (tx) => {
       await Promise.all([
         tx.user_balance.updateMany({
