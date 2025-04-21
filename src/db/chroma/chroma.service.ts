@@ -1,33 +1,36 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ChromaClient } from 'chromadb';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ChromaService {
   private readonly logger = new Logger(ChromaService.name);
-  private readonly embeddings = {
-    generate: async (texts: string[]) => {
-      // Simple embedding function that returns random embeddings
-      // This is just for testing - in production use a proper embedding model
-      return texts.map(() =>
-        Array(384)
-          .fill(0)
-          .map(() => Math.random()),
-      );
-    },
-  };
+  private readonly embeddings: OpenAIEmbeddings;
 
   constructor(
     @Inject('CHROMA_CLIENT')
     private readonly client: ChromaClient,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.embeddings = new OpenAIEmbeddings({
+      openAIApiKey: this.configService.get('OPENAI_API_KEY'),
+      modelName: 'text-embedding-3-small',
+    });
+  }
 
   async getOrCreateCollection(name: string) {
     try {
       // Try to get the collection first
       const collection = await this.client.getCollection({
         name,
-        embeddingFunction: this.embeddings,
+        embeddingFunction: {
+          generate: async (texts: string[]) => {
+            const embeddings = await this.embeddings.embedDocuments(texts);
+            return embeddings.map((embedding) => Array.from(embedding));
+          },
+        },
       });
       this.logger.log(`Using existing collection: ${name}`);
       return collection;
@@ -36,7 +39,12 @@ export class ChromaService {
       this.logger.log(`Creating new collection: ${name}`);
       const collection = await this.client.createCollection({
         name,
-        embeddingFunction: this.embeddings,
+        embeddingFunction: {
+          generate: async (texts: string[]) => {
+            const embeddings = await this.embeddings.embedDocuments(texts);
+            return embeddings.map((embedding) => Array.from(embedding));
+          },
+        },
       });
       return collection;
     }

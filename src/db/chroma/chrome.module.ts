@@ -11,7 +11,7 @@ import { ChromaService } from './chroma.service';
       provide: 'CHROMA_CLIENT',
       useFactory: () => {
         return new ChromaClient({
-          path: 'http://localhost:8000',
+          path: 'http://localhost:1902',
         });
       },
     },
