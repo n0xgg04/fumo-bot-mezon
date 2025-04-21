@@ -35,9 +35,9 @@ export class WorksCommand {
       reference?.message_ref_id &&
       reference?.message_sender_id === this.configService.get('BOT_ID')
     ) {
-      const mess = await this.prisma.fumo_assistant_message_logs.findFirst({
+      const mess = await this.prisma.fumo_assistant_message_logs.count({
         where: {
-          mezon_message_id: reference.message_id,
+          mezon_message_id: reference.message_ref_id,
           user_id: data.sender_id,
           clan_id: data.clan_id,
           channel_id: data.channel_id,
