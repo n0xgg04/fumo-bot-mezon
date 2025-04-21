@@ -59,7 +59,7 @@ export class HrCommand {
           message.is_public || false,
           message.message_id!,
           {
-            t: 'Please provide a file name and question. Usage: *askCV [file_name] [question]',
+            t: 'Vui lòng cung cấp tên tệp và câu hỏi. Sử dụng: *askCV [tên_tệp] [câu_hỏi]',
           },
         );
         return;
@@ -68,27 +68,7 @@ export class HrCommand {
       const fileName = parts[1];
       const question = parts.slice(2).join(' ');
 
-      const placeholder = await this.fumoMessage.sendSystemMessage(
-        message,
-        'Analyzing CV...',
-        message,
-      );
-
-      const result = await this.hrService.askAboutCV(fileName, question);
-
-      console.log('DONE');
-      console.log(result);
-
-      await this.mezon.updateMessage(
-        message.clan_id!,
-        message.channel_id,
-        message.mode || EMessageMode.CHANNEL_MESSAGE,
-        message.is_public || false,
-        placeholder!.message_id,
-        {
-          t: result.message,
-        },
-      );
+      await this.hrService.askAboutCV(message, fileName, question);
     }
   }
 }
