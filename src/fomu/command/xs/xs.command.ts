@@ -42,9 +42,12 @@ export class XsCommand {
       data.content.t?.startsWith('*fxs') ||
       data.content.t?.startsWith('*datso')
     ) {
-      const number = parseInt(data.content.t.split(' ')[1]);
-      if (!isNaN(number)) {
-        await this.xsService.playXS(data, number);
+      const numbers = data.content.t.split(' ').slice(1);
+      const numberArray = numbers.map((number) => parseInt(number));
+      const isValid = numberArray.every((number) => !isNaN(number));
+
+      if (isValid) {
+        await this.xsService.playXS(data, numberArray);
       } else {
         const message = `❌ Sai cú pháp, vui lòng sử dụng lại lệnh`;
         await this.fumoMessage.sendSystemMessage(data, message, data);
