@@ -340,17 +340,19 @@ export class XsService {
     await this.fumoMessage.sendSystemMessage(data, message, data);
   }
 
-  async playXS(data: ChannelMessage, number: number) {
+  async playXS(data: ChannelMessage, numbers: number[]) {
     const user = await this.userService.getUserBalance(data);
 
-    if (number < 0 || number > 99 || isNaN(number)) {
-      const message = `❌ Số không hợp lệ\nSố phải lớn hoặc bằng hơn 0 và nhỏ hơn 99`;
+    if (numbers.some((num) => num < 0 || num > 99 || isNaN(num))) {
+      const message = `❌ Số không hợp lệ\nSố phải lớn hoặc bằng hơn 0 và nhỏ hoặc bằng 99`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
 
-    if (!user || user?.balance < this.xsCost) {
-      const message = `❌ Bạn không có đủ ${this.xsCost} token để chơi xổ số`;
+    const totalCost = numbers.length * this.xsCost;
+
+    if (!user || user?.balance < totalCost) {
+      const message = `❌ Bạn không có đủ ${totalCost} token để chơi ${numbers.length} số xổ số`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
@@ -362,22 +364,24 @@ export class XsService {
       },
     });
 
-    if (countMe.length >= 10) {
+    if (countMe.length + numbers.length >= 10) {
       const message = `❌ Bạn đã chơi xổ số quá nhiều lần`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
 
-    const checkExist = await this.prisma.xs_logs.findFirst({
+    const checkExist = await this.prisma.xs_logs.findMany({
       where: {
         user_id: data.sender_id,
-        number,
+        number: {
+          in: numbers,
+        },
         is_active: true,
       },
     });
 
     if (checkExist) {
-      const message = `❌ Bạn đã chơi số ${number} trước đó!`;
+      const message = `❌ Bạn đã chơi số ${checkExist.map((item) => item.number).join(', ')} trước đó!`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
     }
@@ -395,8 +399,8 @@ export class XsService {
 
     await this.prisma.$transaction(async (tx) => {
       await Promise.all([
-        tx.xs_logs.create({
-          data: {
+        tx.xs_logs.createMany({
+          data: numbers.map((number) => ({
             user_id: data.sender_id,
             cost: this.xsCost,
             number,
@@ -405,27 +409,27 @@ export class XsService {
             is_public: data.is_public,
             username: data.username,
             mode: String(data.mode || EMessageMode.CHANNEL_MESSAGE),
-          },
+          })),
         }),
-        this.prisma.transaction_send_logs.create({
-          data: {
+        tx.transaction_send_logs.createMany({
+          data: numbers.map((number) => ({
             user_id: data.sender_id,
             amount: this.xsCost,
             to_user_id: 'fumo',
-            note: `xs_${time}`,
-          },
+            note: `xs_${time}_${number}`,
+          })),
         }),
-        this.prisma.user_balance.update({
+        tx.user_balance.update({
           where: { user_id: data.sender_id },
           data: {
             balance: {
-              decrement: this.xsCost,
+              decrement: totalCost,
             },
           },
         }),
         await this.fumoMessage.sendSystemMessage(
           data,
-          `🎰 Đã cược số ${number} với giá ${this.xsCost} token\nKết quả sẽ được công bố khi có kết quả.`,
+          `🎰 Đã cược số ${numbers.join(', ')} với giá ${totalCost} token\nKết quả sẽ được công bố khi có kết quả.`,
           data,
         ),
       ]);
