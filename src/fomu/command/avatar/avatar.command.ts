@@ -11,6 +11,8 @@ export class AvatarCommand {
   async handleChannelMessage(message: ChannelMessage) {
     if (message.content.t?.startsWith('*f_avatar')) {
       await this.avatarService.handleAvatar(message);
+    } else if (message.content.t?.startsWith('*roommate')) {
+      await this.avatarService.handleRoommate(message);
     }
   }
 }

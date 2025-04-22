@@ -128,6 +128,7 @@ export class MezonService {
         is_public,
         message_id,
         content,
+        mentions,
       );
     } catch (error) {
       this.logger.error('Error updating message', error);
