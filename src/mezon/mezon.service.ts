@@ -129,6 +129,7 @@ export class MezonService {
         message_id,
         content,
         mentions,
+        attachments,
       );
     } catch (error) {
       this.logger.error('Error updating message', error);
