@@ -380,7 +380,7 @@ export class XsService {
       },
     });
 
-    if (checkExist) {
+    if (checkExist.length > 0) {
       const message = `❌ Bạn đã chơi số ${checkExist.map((item) => item.number).join(', ')} trước đó!`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
