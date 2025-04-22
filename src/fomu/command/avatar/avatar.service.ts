@@ -73,7 +73,7 @@ export class AvatarService {
       },
       [
         {
-          user_id: data.sender_id,
+          user_id: result[0].user_id,
           s: m.length,
           e: m.length + username.length + 1,
         },
