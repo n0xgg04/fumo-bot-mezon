@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { ChannelMessage } from 'mezon-sdk';
+import { ChannelMessage, EMarkdownType } from 'mezon-sdk';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
 import { getRef } from 'src/common/utils/get-ref';
+import { db } from 'src/db';
+import { FumoMessageService } from 'src/mezon/fumo-message.module';
 import { MezonService } from 'src/mezon/mezon.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { InferResult, sql } from 'kysely';
 
 @Injectable()
 export class AvatarService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mezon: MezonService,
+    private readonly fumoMessage: FumoMessageService,
   ) {}
 
   async handleAvatar(message: ChannelMessage) {
@@ -40,5 +44,40 @@ export class AvatarService {
       },
       ref: [ref],
     });
+  }
+
+  async handleRoommate(data: ChannelMessage) {
+    const placeholder = await this.fumoMessage.sendSystemMessage(
+      data,
+      'Đang manifest...',
+      data,
+    );
+
+    const m = `Roomate của bạn là `;
+
+    const result = await this.prisma.$queryRawUnsafe<any>(
+      'SELECT * FROM user_balance WHERE username != ? ORDER BY RAND() LIMIT 1',
+      data.username,
+    );
+
+    const username = result[0].username;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await this.mezon.updateMessage(
+      data.clan_id!,
+      placeholder!.channel_id,
+      data.mode || EMessageMode.CHANNEL_MESSAGE,
+      data.is_public || false,
+      placeholder!.message_id,
+      {
+        t: `${m}@${username}\nLưu ý: Đây không phải thông tin chính thức, sẽ update khi có data từ HR.`,
+      },
+      [
+        {
+          user_id: data.sender_id,
+          s: m.length,
+          e: m.length + username.length + 1,
+        },
+      ],
+    );
   }
 }
