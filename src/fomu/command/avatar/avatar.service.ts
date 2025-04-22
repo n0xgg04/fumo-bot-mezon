@@ -60,6 +60,16 @@ export class AvatarService {
       data.username,
     );
 
+    const avatar = await this.prisma.message_logs.findFirst({
+      where: {
+        sender_id: result[0].user_id,
+      },
+      take: 1,
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+
     const username = result[0].username;
     await new Promise((resolve) => setTimeout(resolve, 1000));
     await this.mezon.updateMessage(
@@ -71,11 +81,20 @@ export class AvatarService {
       {
         t: `${m}@${username}\nLưu ý: Đây không phải thông tin chính thức, sẽ update khi có data từ HR.`,
       },
+      [],
       [
         {
-          user_id: result[0].user_id,
-          s: m.length,
-          e: m.length + username.length + 1,
+          filename: 'avatar.png',
+          filetype: 'image/png',
+          height: 200,
+          size: 200,
+          url: avatar?.sender_avatar,
+          width: 200,
+          channel_id: data.channel_id,
+          mode: data.mode || EMessageMode.CHANNEL_MESSAGE,
+          channel_label: data.channel_label,
+          message_id: data.message_id!,
+          sender_id: data.sender_id,
         },
       ],
     );
