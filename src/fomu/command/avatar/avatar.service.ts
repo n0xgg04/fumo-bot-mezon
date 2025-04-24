@@ -1319,7 +1319,7 @@ export class AvatarService {
 
     const user = data.username;
 
-    const m = `Roomate của bạn là `;
+    const m = `Roomate của bạn là:\n`;
 
     const room = ROOMS.find((r) => r.member.some((m) => m.username === user));
 
