@@ -1333,7 +1333,7 @@ export class AvatarService {
       distinct: ['sender_id'],
       where: {
         sender_username: {
-          in: room?.member.map((m) => m.username),
+          in: room?.member.map((m) => m.username).filter((u) => u !== user),
         },
       },
     });
