@@ -147,7 +147,7 @@ const ROOMS = [
         username: 'quang.buingoc',
       },
       {
-        name: 'Trần Văn Tuyên',
+        name: 'Trần Văn Tuyển',
         username: 'tuyen.tranvan',
       },
     ],
@@ -156,12 +156,12 @@ const ROOMS = [
     roomId: 12,
     member: [
       {
-        name: 'Phạm Tiến Ánh',
+        name: 'Phạm Tiến Anh',
         username: 'anh.phamtien',
       },
       {
         name: 'Mai Xuân Duy',
-        username: 'duy.maixuan',
+        username: 'duy.maxuan',
       },
     ],
   },
@@ -251,7 +251,7 @@ const ROOMS = [
         username: 'duong.tranduc',
       },
       {
-        name: 'Mai Hồng Mận',
+        name: 'Mai Hồng Mẫn',
         username: 'man.maihong',
       },
     ],
@@ -273,8 +273,8 @@ const ROOMS = [
     roomId: 21,
     member: [
       {
-        name: 'Cường Phan Chí Dũng',
-        username: 'dung.cuongphanchi',
+        name: 'Coóng Phan Chí Dũng',
+        username: 'dung.coongphanchi',
       },
       {
         name: 'Lê Văn Quang',
@@ -338,12 +338,12 @@ const ROOMS = [
     roomId: 26,
     member: [
       {
-        name: 'Nguyễn Trọng Tuấn',
-        username: 'tuan.nguyentrong',
-      },
-      {
         name: 'Củ Mạnh Tuấn Tài',
         username: 'tai.cumanhtuan',
+      },
+      {
+        name: 'Trịnh Đức Đại',
+        username: 'dai.trinhduc',
       },
     ],
   },
@@ -369,7 +369,7 @@ const ROOMS = [
       },
       {
         name: 'Hoàng Nguyễn Ngọc Duy Linh',
-        username: 'linh.hoangnguyenngocduỵ',
+        username: 'linh.hoangnguyenngocuy',
       },
     ],
   },
@@ -511,7 +511,7 @@ const ROOMS = [
         username: 'thuan.nguyenleanh',
       },
       {
-        name: 'Nguyễn Tiến Anh',
+        name: 'Nguyễn Tiên Anh',
         username: 'anh.nguyentien',
       },
     ],
@@ -624,7 +624,7 @@ const ROOMS = [
     roomId: 48,
     member: [
       {
-        name: 'Văn Nhật Duy',
+        name: 'Vân Nhật Duy',
         username: 'duy.vannhat',
       },
       {
@@ -677,7 +677,7 @@ const ROOMS = [
     member: [
       {
         name: 'Đặng Hoàng Anh Quân',
-        username: 'quan.danghoanganh',
+        username: 'quan.danghoangauh',
       },
       {
         name: 'Trịnh Hoài Nam',
@@ -728,8 +728,8 @@ const ROOMS = [
     roomId: 56,
     member: [
       {
-        name: 'Trịnh Đức Đại',
-        username: 'dai.trinhduc',
+        name: 'Nguyễn Trọng Tuấn',
+        username: 'tuan.nguyentrong',
       },
       {
         name: 'Ngô Đình Ngọc Quang',
@@ -793,7 +793,7 @@ const ROOMS = [
     roomId: 61,
     member: [
       {
-        name: 'Nguyễn Trí Tuyên',
+        name: 'Nguyễn Trí Tuyển',
         username: 'tuyen.nguyentri',
       },
       {
@@ -821,6 +821,10 @@ const ROOMS = [
       {
         name: 'Nguyễn Xuân Duy',
         username: 'duy.nguyenxuan',
+      },
+      {
+        name: 'Đỗ Văn Minh',
+        username: 'minh.dovan',
       },
       {
         name: 'Trần Bình Dương',
@@ -914,7 +918,7 @@ const ROOMS = [
         username: 'trinh.nguyenthimai',
       },
       {
-        name: 'Nguyễn Tâm Vy',
+        name: 'Nguyễn Tâm Vỹ',
         username: 'vy.nguyentam',
       },
     ],
@@ -1053,7 +1057,7 @@ const ROOMS = [
     roomId: 81,
     member: [
       {
-        name: 'Lê Văn Kỳ Dư',
+        name: 'Lê Văn Kỳ Dự',
         username: 'du.levanky',
       },
       {
@@ -1108,18 +1112,18 @@ const ROOMS = [
         username: 'quang.vonhat',
       },
       {
-        name: 'Trần Ngọc Văn',
+        name: 'Trần Ngọc Vân',
         username: 'van.tranngoc',
-      },
-      {
-        name: 'Nguyễn Minh Đức',
-        username: 'duc.nguyenminh',
       },
     ],
   },
   {
     roomId: 85,
     member: [
+      {
+        name: 'Nguyễn Minh Đức',
+        username: 'duc.nguyenminh',
+      },
       {
         name: 'Đinh Như Thành',
         username: 'thanh.dinhnhu',
@@ -1159,7 +1163,7 @@ const ROOMS = [
         username: 'phong.nguyenduy',
       },
       {
-        name: 'Vũ Quang Chinh',
+        name: 'Vũ Quang Chính',
         username: 'chinh.vuquang',
       },
       {
@@ -1228,7 +1232,7 @@ const ROOMS = [
       },
       {
         name: 'Phan Lê Khôi Nguyên',
-        username: 'nguyen.phanlekho',
+        username: 'nguyen.phanlekoi',
       },
       {
         name: 'Đinh Thị Thu Hiền',
@@ -1317,11 +1321,16 @@ export class AvatarService {
       data,
     );
 
+    const fullName = data.content.t?.split(' ').slice(1).join(' ');
+    const m = `Roomate của bạn là:\n`;
     const user = data.username;
 
-    const m = `Roomate của bạn là:\n`;
-
-    const room = ROOMS.find((r) => r.member.some((m) => m.username === user));
+    let room: any;
+    if (!fullName && data.content.t?.includes(' ')) {
+      room = ROOMS.find((r) => r.member.some((m) => m.username === user));
+    } else {
+      room = ROOMS.find((r) => r.member.some((m) => m.name === fullName));
+    }
 
     let userList = ``;
     for (const member of room?.member || []) {
@@ -1347,7 +1356,7 @@ export class AvatarService {
         data.is_public || false,
         placeholder!.message_id,
         {
-          t: `Không tìm thấy thông tin.`,
+          t: `Không tìm thấy thông tin. Hãy thử *roommate với tên đầy đủ của bạn.`,
         },
       );
     } else {
