@@ -1322,13 +1322,14 @@ export class AvatarService {
     );
 
     const fullName = data.content.t?.split(' ').slice(1).join(' ');
-    const m = `Roomate của bạn là:\n`;
+    let m = `Roomate của bạn là:\n`;
     const user = data.username;
 
     let room: any;
-    if (!fullName && data.content.t?.includes(' ')) {
+    if (!fullName && !data.content.t?.includes(' ')) {
       room = ROOMS.find((r) => r.member.some((m) => m.username === user));
     } else {
+      m = `Roomate của ${fullName} là:\n`;
       room = ROOMS.find((r) => r.member.some((m) => m.name === fullName));
     }
 
