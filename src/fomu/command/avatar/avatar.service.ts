@@ -1325,6 +1325,7 @@ export class AvatarService {
 
     let userList = ``;
     for (const member of room?.member || []) {
+      if (member.username === user) continue;
       userList += `@${member.username} (${member.name})\n`;
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
