@@ -31,4 +31,20 @@ export class TomTatCommand {
       await this.tomTatService.handleTungtung(message);
     }
   }
+
+  @OnEvent(Events.ChannelMessage)
+  async handleTralalerotralala(message: ChannelMessage) {
+    if (message.content.t?.startsWith('*tralalerotralala')) {
+      await this.tomTatService.handleTralalerotralala(message);
+    }
+  }
+
+  @OnEvent(Events.ChannelMessage)
+  async handleBrmbrmpatapim(message: ChannelMessage) {
+    if (message.content.t?.startsWith('*brmbrmpatapim')) {
+      await this.tomTatService.handleBrmbrmpatapim(message);
+    } else if (message.content.t?.startsWith('*bombadilocrocodilo')) {
+      await this.tomTatService.handleBombadilocrocodilo(message);
+    }
+  }
 }
