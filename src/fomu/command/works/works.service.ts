@@ -142,6 +142,18 @@ export class WorksService {
       await debouchFn();
     }
 
+    await new Promise((res) => setTimeout(res, 500));
+    await this.mezon.updateMessage(
+      data.clan_id!,
+      data.channel_id,
+      data.mode || EMessageMode.CHANNEL_MESSAGE,
+      data.is_public || false,
+      placeholder!.message_id,
+      {
+        t: content,
+      },
+    );
+
     const assistantTokens = await this.calculateTokens(content);
     const currentTotalTokens =
       (totalTokensTook._sum.tokens_took || BigInt(0)) +
