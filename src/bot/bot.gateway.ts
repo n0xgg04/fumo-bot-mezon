@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import {
   ApiMessageReaction,
@@ -15,6 +15,12 @@ import {
 } from 'mezon-sdk';
 import { MezonService } from '../mezon/mezon.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import {
+  MessageButtonClickedEvent,
+  TokenSentEventI,
+} from 'src/fomu/command/topup/types';
 
 @Injectable()
 export class BotGateway {
@@ -24,6 +30,7 @@ export class BotGateway {
   constructor(
     private readonly eventEmitter: EventEmitter2,
     private readonly mezonService: MezonService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.client = mezonService.getClient();
   }
@@ -96,13 +103,45 @@ export class BotGateway {
   handleroleassigned = async (msg) => {};
 
   /* cspell:words handlemessagebuttonclicked */
-  handlemessagebuttonclicked = (data) => {
-    this.eventEmitter.emit(Events.MessageButtonClicked, data);
+  handlemessagebuttonclicked = async (data: MessageButtonClickedEvent) => {
+    try {
+      const in_cache = await this.cacheManager.get(
+        'message_button_clicked:' + data.message_id,
+      );
+      if (in_cache) {
+        return;
+      } else {
+        await this.cacheManager.set(
+          'message_button_clicked:' + data.message_id,
+          data,
+          1,
+        );
+        this.eventEmitter.emit(Events.MessageButtonClicked, data);
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
   };
 
-  handletokensend = (data: TokenSentEvent) => {
+  handletokensend = async (data: TokenSentEventI) => {
     if (data.sender_name === 'dulieu.vblc') return;
-    this.eventEmitter.emit(Events.TokenSend, data);
+    try {
+      const in_cache = await this.cacheManager.get(
+        'token_send:' + data.transaction_id,
+      );
+      if (in_cache) {
+        return;
+      } else {
+        await this.cacheManager.set(
+          'token_send:' + data.transaction_id,
+          data,
+          2,
+        );
+        this.eventEmitter.emit(Events.TokenSend, data);
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
   };
 
   /* cspell:words handlechannelmessage */
@@ -112,6 +151,16 @@ export class BotGateway {
       if (!Array.isArray(msg[key])) msg[key] = [];
     });
     if (msg.display_name === 'FUMO') return;
-    this.eventEmitter.emit(Events.ChannelMessage, msg);
+    try {
+      const in_cache = await this.cacheManager.get('msg:' + msg.id);
+      if (in_cache) {
+        return;
+      } else {
+        await this.cacheManager.set('msg:' + msg.id, msg, 60 * 60);
+        this.eventEmitter.emit(Events.ChannelMessage, msg);
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
   };
 }
