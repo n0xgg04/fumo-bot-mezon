@@ -15,12 +15,11 @@ import {
 } from 'mezon-sdk';
 import { MezonService } from '../mezon/mezon.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import {
   MessageButtonClickedEvent,
   TokenSentEventI,
 } from 'src/fomu/command/topup/types';
+import { RedisRepository } from 'src/core/redis/redis.repo';
 
 @Injectable()
 export class BotGateway {
@@ -30,12 +29,16 @@ export class BotGateway {
   constructor(
     private readonly eventEmitter: EventEmitter2,
     private readonly mezonService: MezonService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisRepository: RedisRepository,
   ) {
     this.client = mezonService.getClient();
   }
 
   initEvent() {
+    this.redisRepository
+      .set('system', 'timeup', new Date().toISOString())
+      .then(() => {})
+      .catch(() => {});
     for (const event in Events) {
       const eventValue = Events[event].replace(/_event/g, '').replace(/_/g, '');
       this.logger.log(`Init event ${eventValue}`);
@@ -105,15 +108,17 @@ export class BotGateway {
   /* cspell:words handlemessagebuttonclicked */
   handlemessagebuttonclicked = async (data: MessageButtonClickedEvent) => {
     try {
-      const in_cache = await this.cacheManager.get(
-        'message_button_clicked:' + data.message_id,
+      const in_cache = await this.redisRepository.get(
+        'message_button_clicked',
+        data.message_id,
       );
       if (in_cache) {
         return;
       } else {
-        await this.cacheManager.set(
-          'message_button_clicked:' + data.message_id,
-          data,
+        await this.redisRepository.setWithExpiry(
+          'message_button_clicked',
+          data.message_id,
+          '1',
           1,
         );
         this.eventEmitter.emit(Events.MessageButtonClicked, data);
@@ -126,16 +131,18 @@ export class BotGateway {
   handletokensend = async (data: TokenSentEventI) => {
     if (data.sender_name === 'dulieu.vblc') return;
     try {
-      const in_cache = await this.cacheManager.get(
-        'token_send:' + data.transaction_id,
+      const in_cache = await this.redisRepository.get(
+        'token_send',
+        data.transaction_id,
       );
       if (in_cache) {
         return;
       } else {
-        await this.cacheManager.set(
-          'token_send:' + data.transaction_id,
-          data,
-          2,
+        await this.redisRepository.setWithExpiry(
+          'token_send',
+          data.transaction_id,
+          '1',
+          1,
         );
         this.eventEmitter.emit(Events.TokenSend, data);
       }
@@ -152,11 +159,12 @@ export class BotGateway {
     });
     if (msg.display_name === 'FUMO') return;
     try {
-      const in_cache = await this.cacheManager.get('msg:' + msg.id);
+      const in_cache = await this.redisRepository.get('msg', msg.id);
       if (in_cache) {
+        console.log('in_cache', in_cache);
         return;
       } else {
-        await this.cacheManager.set('msg:' + msg.id, msg, 60 * 60);
+        await this.redisRepository.setWithExpiry('msg', msg.id, '1', 1);
         this.eventEmitter.emit(Events.ChannelMessage, msg);
       }
     } catch (error) {

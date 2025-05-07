@@ -24,4 +24,11 @@ export class TomTatCommand {
       await this.tomTatService.handleHelp(message);
     }
   }
+
+  @OnEvent(Events.ChannelMessage)
+  async handleTungtung(message: ChannelMessage) {
+    if (message.content.t?.startsWith('*tungtungtungsahu')) {
+      await this.tomTatService.handleTungtung(message);
+    }
+  }
 }
