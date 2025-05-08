@@ -364,7 +364,7 @@ export class XsService {
       },
     });
 
-    if (countMe.length + numbers.length >= 10) {
+    if (countMe.length + numbers.length > 15) {
       const message = `❌ Bạn đã chơi xổ số quá nhiều lần`;
       await this.fumoMessage.sendSystemMessage(data, message, data);
       return;
