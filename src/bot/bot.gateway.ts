@@ -161,10 +161,9 @@ export class BotGateway {
     try {
       const in_cache = await this.redisRepository.get('msg', msg.id);
       if (in_cache) {
-        console.log('in_cache', in_cache);
         return;
       } else {
-        await this.redisRepository.setWithExpiry('msg', msg.id, '1', 1);
+        await this.redisRepository.setWithExpiry('msg', msg.id, '1', 5);
         this.eventEmitter.emit(Events.ChannelMessage, msg);
       }
     } catch (error) {
