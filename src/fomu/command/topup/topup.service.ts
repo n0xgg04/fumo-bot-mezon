@@ -66,11 +66,15 @@ export class TopupService {
         },
       });
       if (check || !data.sender_id) return;
-      await Promise.all([
-        this.fumoMessage.sendTextDM(
+      try {
+        await this.fumoMessage.sendTextDM(
           data.sender_id,
           `Đã nạp thành công ${data.amount} token vào FUMO.`,
-        ),
+        );
+      } catch (error) {
+        console.log(error);
+      }
+      await Promise.all([
         this.prisma.$transaction(async (tx) => {
           const userBalance = await tx.user_balance.findUnique({
             where: {
