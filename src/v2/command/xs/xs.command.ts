@@ -1,0 +1,126 @@
+import { Injectable } from '@nestjs/common';
+import { XsService } from './xs.service';
+import { Events } from 'mezon-sdk';
+import { ChannelMessage } from 'mezon-sdk';
+import { OnEvent } from '@nestjs/event-emitter';
+import { MezonService } from 'src/v2/mezon/mezon.service';
+@Injectable()
+export class XsCommand {
+  constructor(
+    private readonly xsService: XsService,
+    private readonly mezon: MezonService,
+  ) {}
+
+  @OnEvent(Events.ChannelMessage)
+  async handleLotMessage(data: ChannelMessage) {
+    if (data.content.t?.startsWith('*lot')) {
+      const numbers = data.content.t.split(' ').slice(1);
+      const numberArray = numbers.map((number) => parseInt(number));
+      if (
+        numberArray.every((number) => !isNaN(number)) &&
+        numberArray.length != 0
+      ) {
+        await this.xsService.playLot(data, numberArray);
+      } else {
+        const message = `❌ Sai cú pháp, vui lòng sử dụng lại lệnh`;
+        await this.mezon.sendMessage({
+          type: 'channel',
+          clan_id: data.clan_id,
+          payload: {
+            channel_id: data.channel_id,
+            message: {
+              type: 'system',
+              content: message,
+            },
+          },
+        });
+      }
+    } else if (data.content.t?.startsWith('*giaithuonglot')) {
+      await this.xsService.giaiThuongLot(data);
+    } else if (data.content.t?.startsWith('*thelelot')) {
+      await this.xsService.theLeLot(data);
+    } else if (data.content.t?.startsWith('*mylot')) {
+      await this.xsService.getLotNumbers(data);
+    }
+  }
+
+  @OnEvent(Events.ChannelMessage)
+  async handleChannelMessage(data: ChannelMessage) {
+    if (data.content.t === '*fxsmb') {
+      await this.xsService.getKqxs(data);
+    } else if (
+      data.content.t?.startsWith('*fxs') ||
+      data.content.t?.startsWith('*datso')
+    ) {
+      const numbers = data.content.t.split(' ').slice(1);
+      const numberArray = numbers.map((number) => parseInt(number));
+      const isValid = numberArray.every((number) => !isNaN(number));
+
+      if (isValid) {
+        await this.xsService.playXS(data, numberArray);
+      } else {
+        const message = `❌ Sai cú pháp, vui lòng sử dụng lại lệnh`;
+        await this.mezon.sendMessage({
+          type: 'channel',
+          clan_id: data.clan_id,
+          payload: {
+            channel_id: data.channel_id,
+            message: {
+              type: 'system',
+              content: message,
+            },
+          },
+        });
+      }
+    } else if (data.content.t?.startsWith('*sxs')) {
+      const number = parseInt(data.content.t.split(' ')[1]);
+      if (!isNaN(number)) {
+        await this.xsService.setXS(data, number);
+      } else {
+        const message = `❌ Sai cú pháp, vui lòng sử dụng lại lệnh`;
+        await this.mezon.sendMessage({
+          type: 'channel',
+          clan_id: data.clan_id,
+          payload: {
+            channel_id: data.channel_id,
+            message: {
+              type: 'system',
+              content: message,
+            },
+          },
+        });
+      }
+    } else if (data.content.t?.startsWith('*checkxs')) {
+      if (data.username === 'anh.luongtuan') {
+        await this.xsService.checkXs();
+      } else {
+        const message = `❌ Bạn không có quyền sử dụng lệnh này`;
+        await this.mezon.sendMessage({
+          type: 'channel',
+          clan_id: data.clan_id,
+          payload: {
+            channel_id: data.channel_id,
+            message: {
+              type: 'system',
+              content: message,
+            },
+          },
+        });
+      }
+    } else if (data?.content.t === '*giaithuong') {
+      await this.xsService.giaiThuong(data);
+    } else if (data?.content.t === '*checktime') {
+      await this.xsService.checkTime(data);
+    } else if (data?.content.t === '*mynumbers') {
+      await this.xsService.myNumbers(data);
+    } else if (data?.content.t === '*xinso') {
+      await this.xsService.xinSo(data);
+    } else if (data?.content.t?.startsWith('*uoc')) {
+      await this.xsService.uoc(data);
+    } else if (data?.content.t === '*topkbb') {
+      await this.xsService.topKBB(data);
+    } else if (data?.content.t === '*topserver') {
+      await this.xsService.topServer(data);
+    }
+  }
+}

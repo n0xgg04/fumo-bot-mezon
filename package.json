@@ -60,7 +60,7 @@
     "kysely": "^0.28.0",
     "langchain": "^0.3.23",
     "lodash": "^4.17.21",
-    "mezon-sdk": "^2.7.83",
+    "mezon-sdk": "^2.7.93",
     "openai": "^4.95.1",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
