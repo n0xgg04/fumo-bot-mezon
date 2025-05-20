@@ -127,19 +127,21 @@ export class BotGateway {
     }
   };
 
-  handletokensend = async (data: TokenSentEvent) => {
+  handletokensend = async (
+    data: TokenSentEvent & { transaction_id: string },
+  ) => {
     if (data.sender_name === 'dulieu.vblc') return;
     try {
       const in_cache = await this.redisRepository.get(
         'token_send',
-        data.receiver_id,
+        data.transaction_id,
       );
       if (in_cache) {
         return;
       } else {
         await this.redisRepository.setWithExpiry(
           'token_send',
-          data.receiver_id,
+          data.transaction_id,
           '1',
           1,
         );
