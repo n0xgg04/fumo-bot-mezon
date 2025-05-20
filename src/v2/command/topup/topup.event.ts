@@ -12,7 +12,7 @@ export class TopupEvent {
   ) {}
 
   @OnEvent(Events.TokenSend)
-  async handleTokenCreated(data: TokenSentEvent) {
+  async handleTokenCreated(data: TokenSentEvent & { transaction_id: string }) {
     await this.topupService.createToken(data as any);
   }
 
