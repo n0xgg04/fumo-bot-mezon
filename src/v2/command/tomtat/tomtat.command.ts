@@ -45,6 +45,8 @@ export class TomTatCommand {
       await this.tomTatService.handleBrmbrmpatapim(message);
     } else if (message.content.t?.startsWith('*bombadilocrocodilo')) {
       await this.tomTatService.handleBombadilocrocodilo(message);
+    } else if (message.content.t?.startsWith('*anbatocom')) {
+      await this.tomTatService.handleAnbatocom(message);
     }
   }
 }
