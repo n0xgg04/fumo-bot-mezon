@@ -1162,6 +1162,17 @@ export class XsService {
       });
     } else if (type === 'gift') {
       if (Number($user?.balance || 0) < Number(token)) {
+        await this.mezon.sendMessage({
+          reply_to_message_id: messageId,
+          type: 'channel',
+          payload: {
+            channel_id: channelId,
+            message: {
+              type: 'system',
+              content: ` ${$user?.username || 'Có người'} mủi lòng trước ${username} nhưng không có tiền :))`,
+            },
+          },
+        });
         return;
       }
       await this.prisma.$transaction(async (tx) => {
