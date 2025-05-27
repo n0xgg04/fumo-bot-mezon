@@ -14,6 +14,11 @@ export const ETransactionSendStatus = {
     PLAY_XS: "PLAY_XS"
 } as const;
 export type ETransactionSendStatus = (typeof ETransactionSendStatus)[keyof typeof ETransactionSendStatus];
+export const EAnxinAcceptType = {
+    GIFT: "GIFT",
+    CHE: "CHE"
+} as const;
+export type EAnxinAcceptType = (typeof EAnxinAcceptType)[keyof typeof EAnxinAcceptType];
 export const KeoBuaBaoEnum = {
     KEO: "KEO",
     BUA: "BUA",

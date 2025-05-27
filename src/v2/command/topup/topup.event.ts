@@ -35,6 +35,7 @@ export class TopupEvent {
         } else {
           await this.mezon.sendMessage({
             type: 'channel',
+            reply_to_message_id: data.message_id,
             payload: {
               channel_id: data.channel_id,
               message: {

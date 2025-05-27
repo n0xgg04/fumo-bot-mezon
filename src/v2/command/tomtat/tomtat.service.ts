@@ -227,7 +227,7 @@ export class TomTatService {
   }
 
   async handleTomTat(message: ChannelMessage, lastMinute: number) {
-    if (lastMinute > 15) {
+    if (lastMinute > 60) {
       await this.mezon.sendMessage({
         type: 'channel',
         reply_to_message_id: message.message_id,
@@ -235,7 +235,7 @@ export class TomTatService {
           channel_id: message.channel_id,
           message: {
             type: 'system',
-            content: 'Giới hạn thời gian tối đa là 15 phút',
+            content: 'Giới hạn thời gian tối đa là 60 phút',
           },
         },
       });

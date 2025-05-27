@@ -251,6 +251,7 @@ export class TopupService {
     }
     const m = `🔃Đang thiết lập game...`;
     const promiseMessage = await this.mezon.sendMessage({
+      reply_to_message_id: data.message_id,
       type: 'channel',
       payload: {
         channel_id: data.channel_id,
@@ -495,6 +496,7 @@ export class TopupService {
       if (check) {
         const mess = '❌Bạn đã chọn rồi';
         await this.mezon.sendMessage({
+          reply_to_message_id: data.message_id,
           type: 'channel',
           clan_id: game[0].clan_id,
           payload: {
@@ -516,6 +518,7 @@ export class TopupService {
           const mess = `💸Bạn (${userBalance?.username}) không có đủ tiền để chơi`;
           await this.mezon.sendMessage({
             type: 'channel',
+            reply_to_message_id: data.message_id,
             clan_id: game[0].clan_id,
             payload: {
               channel_id: game[0].channel_id,
@@ -567,6 +570,7 @@ export class TopupService {
           if (result === -1) {
             const mess = `😲Bạn và đối thủ đều chọn ${CHOICES_SUB[data.button_id]}\nVán này hoà!`;
             await this.mezon.sendMessage({
+              reply_to_message_id: game[0].message_id,
               type: 'channel',
               clan_id: game[0].clan_id,
               payload: {
@@ -595,6 +599,7 @@ export class TopupService {
                 const m1 = `📣KẾT QUẢ\n${userCredit?.username} ra ${CHOICES_SUB[data.button_id]}\n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${userCredit?.username} nhận ${game[0].cost} token từ ${partnerCredit?.username}`;
                 await Promise.all([
                   this.mezon.sendMessage({
+                    reply_to_message_id: game[0].message_id,
                     type: 'channel',
                     clan_id: game[0].clan_id,
                     payload: {
@@ -651,6 +656,7 @@ export class TopupService {
               const mess = `📣KẾT QUẢ\n${userCredit?.username} ra ${CHOICES_SUB[data.button_id]} \n${partnerCredit?.username} ra ${CHOICES_SUB[partnerChosen.keo_bua_bao.toLowerCase()]} \n 🏆KẾT QUẢ: ${partnerCredit?.username} nhận ${game[0].cost} token từ ${userCredit?.username}`;
               await Promise.all([
                 this.mezon.sendMessage({
+                  reply_to_message_id: game[0].message_id,
                   type: 'channel',
                   clan_id: game[0].clan_id,
                   payload: {
@@ -738,6 +744,7 @@ export class TopupService {
               },
             }),
             this.mezon.sendMessage({
+              reply_to_message_id: data.message_id,
               type: 'channel',
               clan_id: game[0].clan_id,
               payload: {

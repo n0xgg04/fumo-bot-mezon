@@ -215,6 +215,35 @@ model xs_logs {
   @@index([user_id])
 }
 
+model anxin_logs {
+  id         Int                 @id @default(autoincrement())
+  user_id    String
+  username   String
+  token      Int
+  created_at DateTime            @default(now())
+  updated_at DateTime            @updatedAt
+  channel_id String
+  clan_id    String
+  message_id String
+  logs       anxin_accept_logs[]
+}
+
+model anxin_accept_logs {
+  id           Int              @id @default(autoincrement())
+  user_id      String
+  username     String
+  type         EAnxinAcceptType
+  anxin_logs   anxin_logs?      @relation(fields: [anxin_logsId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  anxin_logsId Int?
+
+  @@index([anxin_logsId])
+}
+
+enum EAnxinAcceptType {
+  GIFT
+  CHE
+}
+
 model lot_logs {
   id         Int      @id @default(autoincrement())
   user_id    String
