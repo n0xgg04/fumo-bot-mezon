@@ -1335,6 +1335,7 @@ export class AvatarService {
 
     if (!room) {
       await this.mezon.sendMessage({
+        reply_to_message_id: placeholder.message_id,
         type: 'channel',
         payload: {
           channel_id: data.channel_id,
@@ -1344,12 +1345,11 @@ export class AvatarService {
               'Không tìm thấy thông tin. Hãy thử *roommate với tên đầy đủ của bạn.',
           },
         },
-        reply_to_message_id: placeholder!.message_id,
       });
     } else {
       await this.mezon.updateMessage({
         channel_id: data.channel_id,
-        message_id: placeholder!.message_id,
+        message_id: placeholder.message_id,
         content: {
           type: 'system',
           content: `${m}${userList}`,

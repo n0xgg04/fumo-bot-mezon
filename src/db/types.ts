@@ -4,8 +4,26 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   : ColumnType<T, T | undefined, T>;
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-import type { ETransactionType, EMessageRole, ETransactionSendStatus, KeoBuaBaoEnum, EKeobuabaoGameStatus } from "./enums";
+import type { ETransactionType, EMessageRole, ETransactionSendStatus, EAnxinAcceptType, KeoBuaBaoEnum, EKeobuabaoGameStatus } from "./enums";
 
+export type anxin_accept_logs = {
+    id: Generated<number>;
+    user_id: string;
+    username: string;
+    type: EAnxinAcceptType;
+    anxin_logsId: number | null;
+};
+export type anxin_logs = {
+    id: Generated<number>;
+    user_id: string;
+    username: string;
+    token: number;
+    created_at: Generated<Timestamp>;
+    updated_at: Timestamp;
+    channel_id: string;
+    clan_id: string;
+    message_id: string;
+};
 export type fumo_assistant = {
     id: Generated<number>;
     channel_id: string;
@@ -147,6 +165,8 @@ export type xs_logs = {
     mode: Generated<string>;
 };
 export type DB = {
+    anxin_accept_logs: anxin_accept_logs;
+    anxin_logs: anxin_logs;
     fumo_assistant: fumo_assistant;
     fumo_assistant_message_logs: fumo_assistant_message_logs;
     fumo_tokens_took: fumo_tokens_took;

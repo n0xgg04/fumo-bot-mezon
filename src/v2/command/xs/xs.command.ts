@@ -4,6 +4,7 @@ import { Events } from 'mezon-sdk';
 import { ChannelMessage } from 'mezon-sdk';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MezonService } from 'src/v2/mezon/mezon.service';
+import { MessageButtonClicked } from 'mezon-sdk/dist/cjs/rtapi/realtime';
 @Injectable()
 export class XsCommand {
   constructor(
@@ -50,6 +51,7 @@ export class XsCommand {
       await this.xsService.getKqxs(data);
     } else if (
       data.content.t?.startsWith('*fxs') ||
+      data.content.t?.startsWith('*fsx') ||
       data.content.t?.startsWith('*datso')
     ) {
       const numbers = data.content.t.split(' ').slice(1);
@@ -121,6 +123,23 @@ export class XsCommand {
       await this.xsService.topKBB(data);
     } else if (data?.content.t === '*topserver') {
       await this.xsService.topServer(data);
+    }
+  }
+
+  @OnEvent(Events.ChannelMessage)
+  async handleChannelMessageButtonClicked(data: ChannelMessage) {
+    if (data.content.t?.startsWith('*anxin')) {
+      await this.xsService.handleAnxin(data);
+    }
+  }
+
+  @OnEvent(Events.MessageButtonClicked)
+  async handleButtonClicked(data: MessageButtonClicked) {
+    if (
+      data.button_id?.startsWith('gift_') ||
+      data.button_id?.startsWith('chegift_')
+    ) {
+      await this.xsService.handlePressAnxin(data);
     }
   }
 }

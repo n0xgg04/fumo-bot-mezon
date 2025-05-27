@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { ChannelMessage, EMarkdownType } from 'mezon-sdk';
+import {
+  ChannelMessage,
+  EButtonMessageStyle,
+  EMarkdownType,
+  EMessageComponentType,
+} from 'mezon-sdk';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { XsResponse } from './types/xs';
 import { EMessageMode } from 'src/common/enums/mezon.enum';
@@ -8,6 +13,7 @@ import { random } from 'lodash';
 import { formatToken } from 'src/common/utils/formater';
 import { MezonService } from 'src/v2/mezon/mezon.service';
 import { UserService } from 'src/v2/user/user-service';
+import { MessageButtonClicked } from 'mezon-sdk/dist/cjs/rtapi/realtime';
 
 interface TopPlayer {
   user_id: string;
@@ -203,6 +209,7 @@ export class XsService {
     const message = `🍀 Số của bạn là: ${randomNumber}\nChúc may mắn!`;
     await this.mezon.sendMessage({
       type: 'channel',
+      reply_to_message_id: data.message_id,
       clan_id: data.clan_id,
       payload: {
         channel_id: data.channel_id,
@@ -250,6 +257,7 @@ export class XsService {
 
   async theLeLot(data: ChannelMessage) {
     await this.mezon.sendMessage({
+      reply_to_message_id: data.message_id,
       type: 'channel',
       clan_id: data.clan_id,
       payload: {
@@ -275,6 +283,7 @@ export class XsService {
     if (numbers.length > 0) {
       const m = `🔑 Các con số của bạn đã chơi lần lượt là: ${numbers.map((number) => number.number).join(', ')}. Hãy đón chờ kết quả xổ số ngày hôm nay nhé.`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -287,6 +296,7 @@ export class XsService {
       });
     } else {
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -303,6 +313,7 @@ export class XsService {
   async getKqxs(data: ChannelMessage) {
     const placeholder = await this.mezon.sendMessage({
       type: 'channel',
+      reply_to_message_id: data.message_id,
       clan_id: data.clan_id,
       payload: {
         channel_id: data.channel_id,
@@ -334,6 +345,7 @@ export class XsService {
     if (data.username != 'anh.luongtuan') {
       const message = `❌ Bạn không có quyền sử dụng lệnh này`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -349,6 +361,7 @@ export class XsService {
     this.xsCost = cost;
 
     await this.mezon.sendMessage({
+      reply_to_message_id: data.message_id,
       type: 'channel',
       clan_id: data.clan_id,
       payload: {
@@ -372,6 +385,7 @@ export class XsService {
     });
     const message = `💰 Tổng số tiền dành cho người chiến thắng: ${balace._sum.cost || 0} token`;
     await this.mezon.sendMessage({
+      reply_to_message_id: data.message_id,
       type: 'channel',
       clan_id: data.clan_id,
       payload: {
@@ -396,6 +410,7 @@ export class XsService {
     const message = `💰 Tổng số tiền dành cho người chiến thắng Lott: ${balace._sum.cost || 0} token`;
     await this.mezon.sendMessage({
       type: 'channel',
+      reply_to_message_id: data.message_id,
       clan_id: data.clan_id,
       payload: {
         channel_id: data.channel_id,
@@ -413,6 +428,7 @@ export class XsService {
     if (numbers.some((num) => num < 0 || num > 99 || isNaN(num))) {
       const message = `❌ Số không hợp lệ\nSố phải lớn hoặc bằng hơn 0 và nhỏ hoặc bằng 99`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -431,6 +447,7 @@ export class XsService {
     if (!user || user?.balance < totalCost) {
       const message = `❌ Bạn không có đủ ${totalCost} token để chơi ${numbers.length} số xổ số`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -454,6 +471,7 @@ export class XsService {
     if (countMe.length + numbers.length > 15) {
       const message = `❌ Bạn đã chơi xổ số quá nhiều lần`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -480,6 +498,7 @@ export class XsService {
     if (checkExist.length > 0) {
       const message = `❌ Bạn đã chơi số ${checkExist.map((item) => item.number).join(', ')} trước đó!`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -501,6 +520,7 @@ export class XsService {
     if (hours < 0 || hours >= 18) {
       const message = `❌ Chỉ được chơi xổ số từ 00:00 đến 18:00 hàng ngày.`;
       await this.mezon.sendMessage({
+        reply_to_message_id: data.message_id,
         type: 'channel',
         clan_id: data.clan_id,
         payload: {
@@ -546,6 +566,7 @@ export class XsService {
         }),
         this.mezon.sendMessage({
           type: 'channel',
+          reply_to_message_id: data.message_id,
           clan_id: data.clan_id,
           payload: {
             channel_id: data.channel_id,
@@ -1030,5 +1051,142 @@ export class XsService {
         }),
       ]);
     });
+  }
+
+  async handleAnxin(data: ChannelMessage) {
+    const parse = data.content.t?.split(' ');
+    let token = 1000;
+    let mess = 'Công đức vô dụng';
+    let hasMessage = false;
+    if (parse?.length && parse?.length > 1) {
+      token = Number(parse?.[1]);
+      if (!token || isNaN(token) || token < 0 || token > 1000000) {
+        await this.mezon.sendMessage({
+          reply_to_message_id: data.message_id,
+          type: 'channel',
+          payload: {
+            channel_id: data.channel_id,
+            message: {
+              type: 'system',
+              content:
+                'Sai cú pháp rồi!\nNhập *anxin <số tiền> <lời kêu gọi>\nSố tiền tối thiểu là 0K và tối đa là 1M',
+            },
+          },
+        });
+        return;
+      }
+      mess = `${data.content.t?.split(' ').slice(2).join(' ')}`;
+      hasMessage = true;
+    }
+    await this.mezon.sendMessage({
+      reply_to_message_id: data.message_id,
+      type: 'channel',
+      clan_id: data.clan_id,
+      payload: {
+        channel_id: data.channel_id,
+        message: {
+          type: 'optional',
+          content: {
+            components: [
+              {
+                components: [
+                  {
+                    id: `gift_${data.username}_${token}_${data.message_id}_${data.channel_id}_${data.clan_id}`,
+                    type: EMessageComponentType.BUTTON,
+                    component: {
+                      label: 'Mủi lòng',
+                      style: EButtonMessageStyle.SUCCESS,
+                    },
+                  },
+                  {
+                    id: `chegift_${data.username}_${token}_${data.message_id}_${data.channel_id}_${data.clan_id}`,
+                    type: EMessageComponentType.BUTTON,
+                    component: {
+                      label: 'Chê',
+                      style: EButtonMessageStyle.DANGER,
+                    },
+                  },
+                ],
+              },
+            ],
+            embed: [
+              {
+                color: '#3498DB',
+                title: `[GÓC HẢO TÂM]\n${data.username} kêu gọi mọi người tặng ${token} token `,
+                description: mess,
+              },
+            ],
+          },
+        },
+      },
+    });
+  }
+
+  async handlePressAnxin(data: MessageButtonClicked) {
+    const parse = data.button_id?.split('_');
+    const type = parse?.[0] as 'gift' | 'chegift';
+    const username = parse?.[1];
+    const token = parse?.[2];
+    const messageId = parse?.[3];
+    const channelId = parse?.[4];
+    const clanId = parse?.[5];
+    if (
+      !username ||
+      !messageId ||
+      !channelId ||
+      !clanId ||
+      !token ||
+      isNaN(Number(token))
+    ) {
+      return;
+    }
+
+    const $user = await this.prisma.user_balance.findFirst({
+      where: {
+        user_id: data.user_id,
+      },
+    });
+
+    if (type === 'chegift') {
+      await this.mezon.sendMessage({
+        reply_to_message_id: messageId,
+        type: 'channel',
+        clan_id: clanId,
+        payload: {
+          channel_id: channelId,
+          message: {
+            type: 'system',
+            content: `❌ ${$user?.username || 'Có người'} đã chê`,
+          },
+        },
+      });
+    } else if (type === 'gift') {
+      if (Number($user?.balance || 0) < Number(token)) {
+        return;
+      }
+      await this.prisma.$transaction(async (tx) => {
+        await Promise.all([
+          tx.user_balance.update({
+            where: { user_id: $user?.user_id },
+            data: { balance: { decrement: Number(token) } },
+          }),
+          tx.user_balance.updateMany({
+            where: { username: username },
+            data: { balance: { increment: Number(token) } },
+          }),
+          await this.mezon.sendMessage({
+            reply_to_message_id: messageId,
+            type: 'channel',
+            payload: {
+              channel_id: channelId,
+              message: {
+                type: 'system',
+                content: `🎉 ${$user?.username || 'Có người'} đã cho ${username} ${token} token`,
+              },
+            },
+          }),
+        ]);
+      });
+    }
   }
 }
